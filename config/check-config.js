@@ -42,4 +42,40 @@ const summarizeUseAutumn = () => {
   }
 };
 
+const summarizeUseAutumnEnv = () => {
+  const variables = [
+    'USEAUTUMN_API_BASE',
+    'USEAUTUMN_PRODUCT_ID',
+    'USEAUTUMN_TOKEN_CREDITS',
+  ];
+
+  const statuses = variables.map((variable) => {
+    const value = process.env[variable];
+    const hasValue = !(value == null || String(value).trim() === '');
+    return {
+      variable,
+      hasValue,
+    };
+  });
+
+  console.log('\nUseAutumn environment variables');
+  console.table(
+    statuses.map(({ variable, hasValue }) => ({
+      variable,
+      set: yesNo(hasValue),
+    })),
+  );
+
+  const missing = statuses.filter(({ hasValue }) => !hasValue).map(({ variable }) => variable);
+
+  if (missing.length > 0) {
+    console.warn(
+      `\n⚠️  The following UseAutumn environment variables are not set: ${missing.join(', ')}`,
+    );
+  } else {
+    console.log('\n✅  All UseAutumn environment variables are set.');
+  }
+};
+
 summarizeUseAutumn();
+summarizeUseAutumnEnv();

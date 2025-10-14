@@ -198,7 +198,10 @@ docker compose exec api npm run check-config
 
 The output will confirm which UseAutumn key was applied (sandbox or
 production) and whether `USEAUTUMN_KEY` was derived during the check or
-pre-existing in the environment.
+pre-existing in the environment. It will also verify that supporting variables
+like `USEAUTUMN_API_BASE`, `USEAUTUMN_PRODUCT_ID`, and
+`USEAUTUMN_TOKEN_CREDITS` are present so Docker Compose deployments can inject
+them reliably.
 
 ---
 

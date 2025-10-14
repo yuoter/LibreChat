@@ -20,6 +20,9 @@ services:
       - MEILI_HOST=http://meilisearch:7700
       - RAG_PORT=${RAG_PORT:-8000}
       - RAG_API_URL=http://rag_api:${RAG_PORT:-8000}
+      - USEAUTUMN_API_BASE=${USEAUTUMN_API_BASE:-}
+      - USEAUTUMN_PRODUCT_ID=${USEAUTUMN_PRODUCT_ID:-}
+      - USEAUTUMN_TOKEN_CREDITS=${USEAUTUMN_TOKEN_CREDITS:-}
     volumes:
       - type: bind
         source: ./.env
