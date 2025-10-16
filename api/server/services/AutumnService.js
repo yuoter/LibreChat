@@ -299,4 +299,15 @@ async function createCheckoutAutumn({ openidId, email, fingerprint }) {
 // and falls back to node:https, complying with the allowed dependencies policy.
 // ----------------------------------------------------------------------------------
 
+module.exports = {
+  autumn,
+  requestJson,
+  safeJsonParse,
+  withRetry,
+  buildIdempotencyKey,
+  fetchTokenBalanceAutumn,
+  hasSubscriptionAutumn,
+  recordUsageAutumn,
+  createCheckoutAutumn,
+};
 
