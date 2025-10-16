@@ -39,17 +39,16 @@ const missingAutumnConfig = [
   ['USEAUTUMN_HAS_SUBSCRIPTION_FEATURE_ID', useAutumnHasSubscriptionFeatureId],
 ].filter(([, value]) => !value);
 
-if (missingAutumnConfig.length > 0) {
-  const missingKeys = missingAutumnConfig.map(([key]) => key).join(', ');
-  throw new Error(`Missing required Autumn configuration values: ${missingKeys}`);
-}
-
 // -----------------------------------------------------------------------------
 // Low-level HTTP helper (no external deps; works on Node and Edge runtimes)
 // -----------------------------------------------------------------------------
 async function requestJson(method, path, body) {
   const url = path.startsWith('http') ? path : `${useAutumnApiBase}${path}`;
-
+  
+  if (missingAutumnConfig.length > 0) {
+  const missingKeys = missingAutumnConfig.map(([key]) => key).join(', ');
+  throw new Error(`Missing required Autumn configuration values: ${missingKeys}`);}
+  
   const headers = {
     Authorization: `Bearer ${useAutumnKey}`,
     'Content-Type': 'application/json',
@@ -300,11 +299,6 @@ async function createCheckoutAutumn({ openidId, email, fingerprint }) {
 // ----------------------------------------------------------------------------------
 
 module.exports = {
-  autumn,
-  requestJson,
-  safeJsonParse,
-  withRetry,
-  buildIdempotencyKey,
   fetchTokenBalanceAutumn,
   hasSubscriptionAutumn,
   recordUsageAutumn,
