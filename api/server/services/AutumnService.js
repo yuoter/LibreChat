@@ -213,7 +213,7 @@ async function fetchTokenBalanceAutumn({ openidId }) {
     // Basic input validation
     if (!openidId) {
       logger.error({ openidId }, 'fetchTokenBalanceAutumn called without openidId',);
-      return undefined;
+      return 0;
     }
     
     const { data } = await withRetry(() => autumn.customers.get(openidId));
@@ -295,7 +295,7 @@ async function hasSubscriptionAutumn({ openidId, email }) {
     // Basic input validation
     if (!openidId) {
       logger.error({ openidId }, 'hasSubscriptionAutumn called without openidId',);
-      return undefined;
+      return false;
     }
     
     const { data } = await withRetry(() => autumn.check(payload));
