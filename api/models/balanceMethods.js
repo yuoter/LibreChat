@@ -16,7 +16,7 @@ function isInvalidDate(date) {
 
 async function resolveAutumnUser(req, userId) {
   const resolved = {
-    openidId: req?.user?.openidId ?? req?.user?.openidId ?? undefined,
+    openidId: req?.user?.openidId ?? undefined,
     email: req?.user?.email ?? undefined,
   };
 
