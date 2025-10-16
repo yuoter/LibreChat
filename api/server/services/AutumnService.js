@@ -13,26 +13,39 @@
   The following constants mirror the TypeScript version and keep the same names
   for easy comparison. Values are injected from the environment or fixed per task.
 
-  - applyUseAutumnKey                // Autumn secret API key (am_sk_…)
+  - useAutumnKey                // Autumn secret API key (am_sk_…)
   - useAutumnApiBase                 // Base URL for all UseAutumn endpoints
   - useAutumnProductId               // Your Autumn product ID
   - useAutumnTokenCreditsFeatureId   // Feature holding the token‑credit balance
   - useAutumnHasSubscriptionFeatureId// Feature indicating a paid subscription
 */
-const applyUseAutumnKey = require('../api/utils/applyUseAutumnKey');
-const useAutumnApiBase = startupConfig.useAutumnApiBase;
-const useAutumnProductId = startupConfig.useAutumnProductId;
-const useAutumnTokenCreditsFeatureId = startupConfig.useAutumnTokenCreditsFeatureId;
-const useAutumnHasSubscriptionFeatureId = startupConfig.useAutumnHasSubscriptionFeatureId;
+const applyUseAutumnKey = require('../../utils/applyUseAutumnKey');
 
-if (
-  [applyUseAutumnKey,
-   useAutumnApiBase,
-   useAutumnProductId,
-   useAutumnTokenCreditsFeatureId,
-   useAutumnHasSubscriptionFeatureId].some(v => v == null)
-) {
-  throw new Error('Missing required Autumn configuration values');
+const sanitizeEnv = (value) => (typeof value === 'string' ? value.trim() : '');
+
+applyUseAutumnKey();
+
+const useAutumnKey = sanitizeEnv(process.env.USEAUTUMN_KEY);
+const useAutumnApiBase = sanitizeEnv(process.env.USEAUTUMN_API_BASE);
+const useAutumnProductId = sanitizeEnv(process.env.USEAUTUMN_PRODUCT_ID);
+const useAutumnTokenCreditsFeatureId = sanitizeEnv(
+  process.env.USEAUTUMN_TOKEN_CREDITS_FEATURE_ID,
+);
+const useAutumnHasSubscriptionFeatureId = sanitizeEnv(
+  process.env.USEAUTUMN_HAS_SUBSCRIPTION_FEATURE_ID,
+);
+
+const missingAutumnConfig = [
+  ['USEAUTUMN_KEY', useAutumnKey],
+  ['USEAUTUMN_API_BASE', useAutumnApiBase],
+  ['USEAUTUMN_PRODUCT_ID', useAutumnProductId],
+  ['USEAUTUMN_TOKEN_CREDITS_FEATURE_ID', useAutumnTokenCreditsFeatureId],
+  ['USEAUTUMN_HAS_SUBSCRIPTION_FEATURE_ID', useAutumnHasSubscriptionFeatureId],
+].filter(([, value]) => !value);
+
+if (missingAutumnConfig.length > 0) {
+  const missingKeys = missingAutumnConfig.map(([key]) => key).join(', ');
+  throw new Error(`Missing required Autumn configuration values: ${missingKeys}`);
 }
 
 // -----------------------------------------------------------------------------
