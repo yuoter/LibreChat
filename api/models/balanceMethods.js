@@ -212,7 +212,11 @@ const checkBalance = async ({ req, res, txData }) => {
       type = subscribed ? ViolationTypes.TOKEN_BALANCE_SUB : ViolationTypes.TOKEN_BALANCE_NO_SUB;
 
       if (!subscribed) {
-          checkoutUrl = await createCheckoutAutumn({ openidId: openidId, email: email, fingerprint: email,});
+          checkoutUrl = await createCheckoutAutumn({
+            openidId: openidId,
+            email: email,
+            fingerprint: email,
+          });
       }
     } catch (error) {
       logger.error('[Balance.check] Failed to determine Autumn subscription status', {
