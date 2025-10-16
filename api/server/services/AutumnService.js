@@ -15,31 +15,20 @@ const { logger } = require('@librechat/data-schemas');
   The following constants mirror the TypeScript version and keep the same names
   for easy comparison. Values are injected from the environment or fixed per task.
 
-  - useAutumnKey                // Autumn secret API key (am_sk_…)
+  - applyUseAutumnKey                // Autumn secret API key (am_sk_…)
   - useAutumnApiBase                 // Base URL for all UseAutumn endpoints
   - useAutumnProductId               // Your Autumn product ID
   - useAutumnTokenCreditsFeatureId   // Feature holding the token‑credit balance
   - useAutumnHasSubscriptionFeatureId// Feature indicating a paid subscription
 */
-const applyUseAutumnKey = require('../../utils/applyUseAutumnKey');
 
-const sanitizeEnv = (value) => (typeof value === 'string' ? value.trim() : '');
+const applyUseAutumnKey = process.env.USEAUTUMN_SANDBOX_KEY;
+const useAutumnApiBase = 'https://api.useautumn.com/v1';
+const useAutumnProductId = 'pro-plan';
+const useAutumnTokenCreditsFeatureId = 'token-credits';
+const useAutumnHasSubscriptionFeatureId = 'has-subscription';
 
-applyUseAutumnKey();
 
-const useAutumnKey = sanitizeEnv(process.env.USEAUTUMN_KEY);
-const useAutumnApiBase = sanitizeEnv(process.env.USEAUTUMN_API_BASE);
-const useAutumnProductId = sanitizeEnv(process.env.USEAUTUMN_PRODUCT_ID);
-const useAutumnTokenCreditsFeatureId = sanitizeEnv(process.env.USEAUTUMN_TOKEN_CREDITS_FEATURE_ID);
-const useAutumnHasSubscriptionFeatureId = sanitizeEnv(process.env.USEAUTUMN_HAS_SUBSCRIPTION_FEATURE_ID);
-
-const missingAutumnConfig = [
-  ['USEAUTUMN_KEY', useAutumnKey],
-  ['USEAUTUMN_API_BASE', useAutumnApiBase],
-  ['USEAUTUMN_PRODUCT_ID', useAutumnProductId],
-  ['USEAUTUMN_TOKEN_CREDITS_FEATURE_ID', useAutumnTokenCreditsFeatureId],
-  ['USEAUTUMN_HAS_SUBSCRIPTION_FEATURE_ID', useAutumnHasSubscriptionFeatureId],
-].filter(([, value]) => !value);
 
 // -----------------------------------------------------------------------------
 // Low-level HTTP helper (no external deps; works on Node and Edge runtimes)
@@ -124,14 +113,6 @@ async function requestJson(method, path, body) {
   return { data: raw };
 }
 
-function safeJsonParse(text) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
-}
-
 // -----------------------------------------------------------------------------
 // Client instance (shim) to mirror the TypeScript structure without autumn-js
 // -----------------------------------------------------------------------------
@@ -157,6 +138,17 @@ const autumn = {
 // -----------------------------------------------------------------------------
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 250;
+
+/**
+ * Safely parse JSON without throwing
+ */
+function safeJsonParse(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Generic retry helper with exponential back‑off.
@@ -454,4 +446,3 @@ module.exports = {
   recordUsageAutumn,
   createCheckoutAutumn,
 };
-
