@@ -29,9 +29,7 @@ const useAutumnKey = sanitizeEnv(process.env.USEAUTUMN_KEY);
 const useAutumnApiBase = sanitizeEnv(process.env.USEAUTUMN_API_BASE);
 const useAutumnProductId = sanitizeEnv(process.env.USEAUTUMN_PRODUCT_ID);
 const useAutumnTokenCreditsFeatureId = sanitizeEnv(process.env.USEAUTUMN_TOKEN_CREDITS_FEATURE_ID);
-const useAutumnHasSubscriptionFeatureId = sanitizeEnv(
-  process.env.USEAUTUMN_HAS_SUBSCRIPTION_FEATURE_ID,
-);
+const useAutumnHasSubscriptionFeatureId = sanitizeEnv(process.env.USEAUTUMN_HAS_SUBSCRIPTION_FEATURE_ID);
 
 const missingAutumnConfig = [
   ['USEAUTUMN_KEY', useAutumnKey],
