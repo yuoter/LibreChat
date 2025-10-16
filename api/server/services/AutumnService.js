@@ -124,6 +124,14 @@ async function requestJson(method, path, body) {
   return { data: raw };
 }
 
+function safeJsonParse(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 // -----------------------------------------------------------------------------
 // Client instance (shim) to mirror the TypeScript structure without autumn-js
 // -----------------------------------------------------------------------------
@@ -260,6 +268,11 @@ async function fetchTokenBalanceAutumn({ openidId }) {
       );
       return 0;
     }
+  } catch (err) {
+    logger.error({ err, openidId }, 'Failed to fetch token balance from Autumn');
+    return 0;
+  }
+}
 
 /**
  * Check if the customer currently has an active subscription.
