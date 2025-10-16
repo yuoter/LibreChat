@@ -124,14 +124,6 @@ async function requestJson(method, path, body) {
   return { data: raw };
 }
 
-function safeJsonParse(text) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
-}
-
 // -----------------------------------------------------------------------------
 // Client instance (shim) to mirror the TypeScript structure without autumn-js
 // -----------------------------------------------------------------------------
