@@ -191,7 +191,7 @@ function generateUuidV4() {
  * Fetch the user’s remaining token‑credit balance from Autumn.
  * @return Number of remaining credits (0 if the feature is missing).
  */
-export async function fetchTokenBalanceAutumn({openidId}) {
+export async function fetchTokenBalanceAutumn({ openidId }) {
   try {
     const { data } = await withRetry(() => autumn.customers.get(openidId));
 
@@ -231,14 +231,14 @@ export async function fetchTokenBalanceAutumn({openidId}) {
 /**
  * Check if the customer currently has an active subscription.
  */
-export async function hasSubscriptionAutumn({openidId, email}) {
+export async function hasSubscriptionAutumn({ openidId, email }) {
   const payload = {
     customer_id: openidId,
     feature_id: useAutumnHasSubscriptionFeatureId,
   };
 
   // Include customer_data so /check can auto-create the customer if missing
-  payload.customer_data = { email:email, fingerprint: email };
+  payload.customer_data = { email: email, fingerprint: email };
 
   const { data } = await withRetry(() => autumn.check(payload));
 
@@ -281,7 +281,7 @@ export async function createCheckoutAutumn({
       force_checkout: true,
       customer_data: {
         email: email,
-        fingerprint: email, // kept identical to the TS version for structural parity
+        fingerprint: fingerprint,
       },
     }),
   );
