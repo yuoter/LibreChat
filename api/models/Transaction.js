@@ -6,6 +6,7 @@ const { recordUsageAutumn } = require('~/server/services/AutumnService.js');
 const cancelRate = 1.15;
 
 async function recordAutumnTokenUsage(transaction, incrementValue) {
+  logger.warn('For debugging: recordAutumnTokenUsage in Transaction.js called');
   if (!transaction || incrementValue >= 0) {
     return;
   }

@@ -156,8 +156,6 @@ const Error = ({ text }: { text: string }) => {
     const proSupportEmail = startupConfig?.insideSubscription?.proSupportEmail ?? '';
 
     const md = [
-      `Insufficient Balance! Token Credits Balance: ${balance}. Prompt tokens: ${promptTokens}. Cost: ${tokenCost}.`,
-      '',
       `Subscribe and receive an interactive detailed summary of videos you are interested in!`,
       '',
       '',

@@ -14,16 +14,42 @@ function isInvalidDate(date) {
   return isNaN(date);
 }
 
+
 async function resolveAutumnUser(req, userId) {
+  logger.warn('For debugging: resolveAutumnUser in balanceMethods.js called');
+  // add a tiny, consistent context for every log line
+  const ctx = {
+    userId: userId ?? null,
+    route: req?.originalUrl ?? null,
+    requestId: req?.id ?? req?.headers?.['x-request-id'] ?? null,
+  };
+
   const resolved = {
     openidId: req?.user?.openidId ?? undefined,
     email: req?.user?.email ?? undefined,
   };
 
+  // If req.user is present but missing fields, that's unusual but not fatal.
+  if (req?.user && (resolved.openidId == null || resolved.email == null)) {
+    logger.warn('[resolveAutumnUser] req.user present but missing identifiers', {
+      ...ctx,
+      hasOpenId: resolved.openidId != null,
+      hasEmail: resolved.email != null,
+    });
+  }
+
+  // If nothing on req.user and we also don’t have a userId, we can’t do much.
+  if ((resolved.openidId == null || resolved.email == null) && !userId) {
+    logger.warn('[resolveAutumnUser] No identifiers in req.user and no userId provided', ctx);
+  }
+
   if ((resolved.openidId == null || resolved.email == null) && userId) {
     try {
       const userDoc = await User.findById(userId).select('openidId email').lean();
-      if (userDoc) {
+
+      if (!userDoc) {
+        logger.warn('[resolveAutumnUser] User not found by id', ctx);
+      } else {
         if (!resolved.openidId && userDoc.openidId) {
           resolved.openidId = userDoc.openidId;
         }
@@ -32,11 +58,34 @@ async function resolveAutumnUser(req, userId) {
         }
       }
     } catch (error) {
-      logger.error('[Balance.check] Failed to resolve Autumn identifiers', {
-        error,
-        userId,
+      // keep this as error: DB lookup failed (actionable)
+      logger.error('[resolveAutumnUser] Failed to resolve Autumn identifiers', {
+        ...ctx,
+        error: {
+          name: error?.name,
+          message: error?.message,
+          // include stack only if your logger is configured to redact in prod
+          stack: process.env.NODE_ENV === 'production' ? undefined : error?.stack,
+        },
       });
     }
+  }
+
+  // Final sanity check: we still couldn’t assemble everything.
+  if (resolved.openidId == null || resolved.email == null) {
+    logger.warn('[resolveAutumnUser] Identifiers incomplete after resolution', {
+      ...ctx,
+      hasOpenId: resolved.openidId != null,
+      hasEmail: resolved.email != null,
+    });
+  } else {
+    // Optional: a low-volume success breadcrumb (upgrade to debug if you have logger.debug)
+    logger.warn('[resolveAutumnUser] Identifiers resolved', {
+      ...ctx,
+      // avoid printing the full email in logs
+      email: resolved.email,
+      hasOpenId: true,
+    });
   }
 
   return {
@@ -46,28 +95,56 @@ async function resolveAutumnUser(req, userId) {
 }
 
 async function synchronizeAutumnBalance(userId, openidId) {
-  if (!userId || !openidId) {
+  logger.warn('For debugging: synchronizeAutumnBalance in balanceMethods.js called');
+  if (!userId || !openidId) return;
+
+  let remoteBalance;
+  try {
+    remoteBalance = await fetchTokenBalanceAutumn({ openidId });
+  } catch (error) {
+    logger.error('[Balance.sync] Autumn API call failed', {
+      errorMessage: error?.message,
+      name: error?.name,
+      code: error?.code,
+      userId,
+      openidId,
+    });
+    return;
+  }
+
+  if (typeof remoteBalance !== 'number' || Number.isNaN(remoteBalance)) {
+    logger.warn('[Balance.sync] Autumn returned non-numeric balance', {
+      remoteBalanceType: typeof remoteBalance,
+      remoteBalance,
+      userId,
+    });
     return;
   }
 
   try {
-    const remoteBalance = await fetchTokenBalanceAutumn({ openidId: openidId });
-    if (typeof remoteBalance !== 'number' || Number.isNaN(remoteBalance)) {
-      return;
-    }
-
     await Balance.findOneAndUpdate(
       { user: userId },
-      { $set: { tokenCredits: remoteBalance } },
-      {
-        upsert: true,
-        setDefaultsOnInsert: true,
-        new: false,
-      },
+      { $set: { tokenCredits: remoteBalance }, $setOnInsert: { user: userId } },
+      { upsert: true, new: false, setDefaultsOnInsert: true },
     );
   } catch (error) {
-    logger.error('[Balance.check] Failed to synchronize balance with Autumn', {
-      error,
+    // Handle upsert race (E11000) by retrying without upsert
+    if (error?.code === 11000) {
+      try {
+        await Balance.updateOne({ user: userId }, { $set: { tokenCredits: remoteBalance } });
+        return;
+      } catch (retryErr) {
+        logger.error('[Balance.sync] Retry after E11000 failed', {
+          errorMessage: retryErr?.message,
+          userId,
+        });
+        return;
+      }
+    }
+    logger.error('[Balance.sync] Mongo update failed', {
+      errorMessage: error?.message,
+      name: error?.name,
+      code: error?.code,
       userId,
     });
   }
@@ -86,6 +163,7 @@ const checkBalanceRecord = async function ({
   amount,
   endpointTokenConfig,
 }) {
+  logger.warn('For debugging: checkBalanceRecord in balanceMethods.js called');
   const multiplier = getMultiplier({ valueKey, tokenType, model, endpoint, endpointTokenConfig });
   const tokenCost = amount * multiplier;
 
@@ -194,6 +272,7 @@ const addIntervalToDate = (date, value, unit) => {
  * @throws {Error} Throws an error if there's an issue with the balance check.
  */
 const checkBalance = async ({ req, res, txData }) => {
+  logger.warn('For debugging: checkBalance in balanceMethods.js called');
   const { openidId, email } = await resolveAutumnUser(req, txData?.user);
 
   await synchronizeAutumnBalance(txData?.user, openidId);
