@@ -278,11 +278,7 @@ export async function recordUsageAutumn({
  * Create (or attach) a subscription checkout session when the user has no credits
  * and no existing subscription. Returns the Stripe Checkout URL.
  */
-export async function createCheckoutAutumn({
-  openidId,
-  email,
-  fingerprint,
-}) {
+export async function createCheckoutAutumn({ openidId, email, fingerprint }) {
   const { data } = await withRetry(() =>
     autumn.attach({
       customer_id: openidId,
