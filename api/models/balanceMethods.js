@@ -125,7 +125,7 @@ async function synchronizeAutumnBalance(userId, openidId) {
     await Balance.findOneAndUpdate(
       { user: userId },
       { $set: { tokenCredits: remoteBalance }, $setOnInsert: { user: userId } },
-      { upsert: true, new: false, setDefaultsOnInsert: true }
+      { upsert: true, new: false, setDefaultsOnInsert: true },
     );
   } catch (error) {
     // Handle upsert race (E11000) by retrying without upsert
