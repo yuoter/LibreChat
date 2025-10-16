@@ -51,7 +51,7 @@ async function synchronizeAutumnBalance(userId, openidId) {
   }
 
   try {
-    const remoteBalance = await fetchTokenBalanceAutumn({openidId: openidId});
+    const remoteBalance = await fetchTokenBalanceAutumn({ openidId: openidId });
     if (typeof remoteBalance !== 'number' || Number.isNaN(remoteBalance)) {
       return;
     }
@@ -208,7 +208,7 @@ const checkBalance = async ({ req, res, txData }) => {
 
   if (openidId && email) {
     try {
-      const subscribed = await hasSubscriptionAutumn({openidId: openidId, email: email});
+      const subscribed = await hasSubscriptionAutumn({ openidId: openidId, email: email });
       type = subscribed ? ViolationTypes.TOKEN_BALANCE_SUB : ViolationTypes.TOKEN_BALANCE_NO_SUB;
 
       if (!subscribed) {
