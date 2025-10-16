@@ -15,19 +15,31 @@ const { logger } = require('@librechat/data-schemas');
   The following constants mirror the TypeScript version and keep the same names
   for easy comparison. Values are injected from the environment or fixed per task.
 
-  - applyUseAutumnKey                // Autumn secret API key (am_sk_…)
+  - useAutumnKey                // Autumn secret API key (am_sk_…)
   - useAutumnApiBase                 // Base URL for all UseAutumn endpoints
   - useAutumnProductId               // Your Autumn product ID
   - useAutumnTokenCreditsFeatureId   // Feature holding the token‑credit balance
   - useAutumnHasSubscriptionFeatureId// Feature indicating a paid subscription
 */
+const applyUseAutumnKey = require('../../utils/applyUseAutumnKey');
 
-const applyUseAutumnKey = process.env.USEAUTUMN_SANDBOX_KEY;
-const useAutumnApiBase = 'https://api.useautumn.com/v1';
-const useAutumnProductId = 'pro-plan';
-const useAutumnTokenCreditsFeatureId = 'token-credits';
-const useAutumnHasSubscriptionFeatureId = 'has-subscription';
+const sanitizeEnv = (value) => (typeof value === 'string' ? value.trim() : '');
 
+applyUseAutumnKey();
+
+const useAutumnKey = sanitizeEnv(process.env.USEAUTUMN_KEY);
+const useAutumnApiBase = sanitizeEnv(process.env.USEAUTUMN_API_BASE);
+const useAutumnProductId = sanitizeEnv(process.env.USEAUTUMN_PRODUCT_ID);
+const useAutumnTokenCreditsFeatureId = sanitizeEnv(process.env.USEAUTUMN_TOKEN_CREDITS_FEATURE_ID);
+const useAutumnHasSubscriptionFeatureId = sanitizeEnv(process.env.USEAUTUMN_HAS_SUBSCRIPTION_FEATURE_ID);
+
+const missingAutumnConfig = [
+  ['USEAUTUMN_KEY', useAutumnKey],
+  ['USEAUTUMN_API_BASE', useAutumnApiBase],
+  ['USEAUTUMN_PRODUCT_ID', useAutumnProductId],
+  ['USEAUTUMN_TOKEN_CREDITS_FEATURE_ID', useAutumnTokenCreditsFeatureId],
+  ['USEAUTUMN_HAS_SUBSCRIPTION_FEATURE_ID', useAutumnHasSubscriptionFeatureId],
+].filter(([, value]) => !value);
 
 
 // -----------------------------------------------------------------------------
