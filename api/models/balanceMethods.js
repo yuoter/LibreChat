@@ -83,7 +83,7 @@ async function resolveAutumnUser(req, userId) {
     logger.warn('[resolveAutumnUser] Identifiers resolved', {
       ...ctx,
       // avoid printing the full email in logs
-      email: maskEmail(resolved.email),
+      email: resolved.email,
       hasOpenId: true,
     });
   }
