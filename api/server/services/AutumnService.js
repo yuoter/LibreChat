@@ -134,7 +134,7 @@ function safeJsonParse(text) {
 // -----------------------------------------------------------------------------
 // Client instance (shim) to mirror the TypeScript structure without autumn-js
 // -----------------------------------------------------------------------------
-export const autumn = {
+const autumn = {
   customers: {
     async get(customerId) {
       return requestJson('GET', `/customers/${encodeURIComponent(customerId)}`);
@@ -200,7 +200,7 @@ function generateUuidV4() {
  * Fetch the user’s remaining token‑credit balance from Autumn.
  * @return Number of remaining credits (0 if the feature is missing).
  */
-export async function fetchTokenBalanceAutumn({ openidId }) {
+async function fetchTokenBalanceAutumn({ openidId }) {
   try {
     const { data } = await withRetry(() => autumn.customers.get(openidId));
 
@@ -240,7 +240,7 @@ export async function fetchTokenBalanceAutumn({ openidId }) {
 /**
  * Check if the customer currently has an active subscription.
  */
-export async function hasSubscriptionAutumn({ openidId, email }) {
+async function hasSubscriptionAutumn({ openidId, email }) {
   const payload = {
     customer_id: openidId,
     feature_id: useAutumnHasSubscriptionFeatureId,
@@ -258,7 +258,7 @@ export async function hasSubscriptionAutumn({ openidId, email }) {
  * Record token usage so that Autumn decrements the customer’s balance.
  * Idempotent thanks to the key.
  */
-export async function recordUsageAutumn({
+async function recordUsageAutumn({
   openidId,
   usedTokens,
   idempotencyKey = buildIdempotencyKey(openidId),
@@ -278,7 +278,7 @@ export async function recordUsageAutumn({
  * Create (or attach) a subscription checkout session when the user has no credits
  * and no existing subscription. Returns the Stripe Checkout URL.
  */
-export async function createCheckoutAutumn({ openidId, email, fingerprint }) {
+async function createCheckoutAutumn({ openidId, email, fingerprint }) {
   const { data } = await withRetry(() =>
     autumn.attach({
       customer_id: openidId,
