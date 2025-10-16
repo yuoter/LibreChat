@@ -51,9 +51,9 @@ async function requestJson(method, path, body) {
   const url = path.startsWith('http') ? path : `${useAutumnApiBase}${path}`;
 
   const headers = {
-    'Authorization': `Bearer ${useAutumnKey}`,
+    Authorization: `Bearer ${useAutumnKey}`,
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   };
 
   // Prefer global fetch if available; otherwise use https fallback
