@@ -1,3 +1,5 @@
+const { logger } = require('@librechat/data-schemas');
+
 // ./services/AutumnService.js
 // ----------------------------------------------------------------------------------
 // Centralised wrapper for all interactions with UseAutumn billing API
