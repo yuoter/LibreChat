@@ -225,9 +225,12 @@ const checkBalance = async ({ req, res, txData }) => {
       });
     }
   } else {
-    logger.warn('[Balance.check] Missing openidId identifier or/and email; skipping Autumn subscription check', {
-      userId: txData?.user,
-    });
+    logger.warn(
+      '[Balance.check] Missing openidId identifier or/and email; skipping Autumn subscription check',
+      {
+        userId: txData?.user,
+      }
+    );
   }
 
   const errorMessage = {
