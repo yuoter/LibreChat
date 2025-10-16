@@ -185,12 +185,12 @@ async function withRetry(fn, retries = MAX_RETRIES) {
  */
 function buildIdempotencyKey(customerId) {
   const uuid = generateUuidV4();
-  logger.warn({ uuid }, 'For debugging: generateUuidV4 called',);
+  logger.warn({ uuid }, 'For debugging: generateUuidV4 called');
   return `track-${customerId}-${uuid}`;
 }
 
 function generateUuidV4() {
-  logger.warn('For debugging: generateUuidV4 called',);
+  logger.warn('For debugging: generateUuidV4 called');
   // Lightweight v4 UUID generator without external deps
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -209,24 +209,24 @@ function generateUuidV4() {
  */
 async function fetchTokenBalanceAutumn({ openidId }) {
   try {
-    logger.warn('For debugging: fetchTokenBalanceAutumn called',);
+    logger.warn('For debugging: fetchTokenBalanceAutumn called');
     // Basic input validation
     if (!openidId) {
-      logger.error({ openidId }, 'fetchTokenBalanceAutumn called without openidId',);
+      logger.error({ openidId }, 'fetchTokenBalanceAutumn called without openidId');
       return 0;
     }
     
     const { data } = await withRetry(() => autumn.customers.get(openidId));
 
     if (!data) {
-      logger.warn({ openidId }, 'Autumn returned no data for customer',);
+      logger.warn({ openidId }, 'Autumn returned no data for customer');
       return 0;
     }
 
     const { features } = data;
 
     if (!features) {
-      logger.warn({ openidId }, 'Autumn response missing features',);
+      logger.warn({ openidId }, 'Autumn response missing features');
       return 0;
     }
 
@@ -273,7 +273,7 @@ async function fetchTokenBalanceAutumn({ openidId }) {
       return 0;
     }
   } catch (err) {
-    logger.error({ err, openidId }, 'Failed to fetch token balance from Autumn',);
+    logger.error({ err, openidId }, 'Failed to fetch token balance from Autumn');
     return 0;
   }
 }
@@ -291,17 +291,16 @@ async function hasSubscriptionAutumn({ openidId, email }) {
   };
 
   try {
-    logger.warn('For debugging: hasSubscriptionAutumn called',);
+    logger.warn('For debugging: hasSubscriptionAutumn called');
     // Basic input validation
     if (!openidId) {
-      logger.error({ openidId }, 'hasSubscriptionAutumn called without openidId',);
+      logger.error({ openidId }, 'hasSubscriptionAutumn called without openidId');
       return false;
     }
-    
     const { data } = await withRetry(() => autumn.check(payload));
 
     if (!data) {
-      logger.warn({ openidId }, 'Autumn /check returned no data',);
+      logger.warn({ openidId }, 'Autumn /check returned no data');
       return false;
     }
 
@@ -320,7 +319,7 @@ async function hasSubscriptionAutumn({ openidId, email }) {
 
     return Boolean(data.allowed);
   } catch (err) {
-    logger.error({ err, openidId }, 'Failed to check subscription with Autumn',);
+    logger.error({ err, openidId }, 'Failed to check subscription with Autumn');
     return false;
   }
 }
@@ -334,20 +333,20 @@ async function recordUsageAutumn({
   usedTokens,
   idempotencyKey = buildIdempotencyKey(openidId),
 }) {
-  logger.warn('For debugging: recordUsageAutumn called',);
+  logger.warn('For debugging: recordUsageAutumn called');
   // Validate inputs early
   if (!openidId) {
-    logger.error({ openidId }, 'recordUsageAutumn called without openidId',);
+    logger.error({ openidId }, 'recordUsageAutumn called without openidId');
     return;
   }
 
   const numeric = Number(usedTokens);
   if (!Number.isFinite(numeric)) {
-    logger.error({ openidId, usedTokens }, 'recordUsageAutumn called with non-numeric usedTokens',);
+    logger.error({ openidId, usedTokens }, 'recordUsageAutumn called with non-numeric usedTokens');
     return;
   }
   if (numeric <= 0) {
-    logger.warn({ openidId, usedTokens: numeric }, 'Non-positive usedTokens; skipping usage record',);
+    logger.warn({ openidId, usedTokens: numeric }, 'Non-positive usedTokens; skipping usage record');
     return;
   }
 
@@ -393,18 +392,18 @@ async function recordUsageAutumn({
  * and no existing subscription. Returns the Stripe Checkout URL.
  */
 async function createCheckoutAutumn({ openidId, email, fingerprint }) {
-  logger.warn('For debugging: createCheckoutAutumn called',);
+  logger.warn('For debugging: createCheckoutAutumn called');
   // Basic input validation
   if (!openidId) {
-    logger.error({ openidId }, 'createCheckoutAutumn called without openidId',);
+    logger.error({ openidId }, 'createCheckoutAutumn called without openidId');
     return undefined;
   }
   if (!email) {
-    logger.error({ openidId }, 'createCheckoutAutumn called without email',);
+    logger.error({ openidId }, 'createCheckoutAutumn called without email');
     return undefined;
   }
   if (!fingerprint) {
-    logger.warn({ openidId }, 'createCheckoutAutumn called without fingerprint',);
+    logger.warn({ openidId }, 'createCheckoutAutumn called without fingerprint');
   }
 
   try {
@@ -422,12 +421,12 @@ async function createCheckoutAutumn({ openidId, email, fingerprint }) {
 
     const status = res?.status ?? res?.data?.status;
     if (typeof status === 'number' && status >= 400) {
-      logger.warn({ openidId, status }, 'Autumn.attach returned non-success status',);
+      logger.warn({ openidId, status }, 'Autumn.attach returned non-success status');
     }
 
     const data = res?.data;
     if (!data) {
-      logger.warn({ openidId }, 'Autumn.attach returned no data',);
+      logger.warn({ openidId }, 'Autumn.attach returned no data');
       return undefined;
     }
 
@@ -442,7 +441,7 @@ async function createCheckoutAutumn({ openidId, email, fingerprint }) {
 
     return url;
   } catch (err) {
-    logger.error({ err, openidId, email }, 'Failed to create checkout with Autumn',);
+    logger.error({ err, openidId, email }, 'Failed to create checkout with Autumn');
     return undefined;
   }
 }
