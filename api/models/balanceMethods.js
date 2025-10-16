@@ -1,4 +1,3 @@
-require('ts-node/register');
 const { logger } = require('@librechat/data-schemas');
 const { ViolationTypes } = require('librechat-data-provider');
 const { createAutoRefillTransaction } = require('./Transaction');
@@ -9,7 +8,7 @@ const {
   fetchTokenBalanceAutumn,
   hasSubscriptionAutumn,
   createCheckoutAutumn,
-} = require('~/server/services/AutumnService.ts');
+} = require('~/server/services/AutumnService.js');
 
 function isInvalidDate(date) {
   return isNaN(date);
@@ -17,7 +16,7 @@ function isInvalidDate(date) {
 
 async function resolveAutumnUser(req, userId) {
   const resolved = {
-    openidId: req?.user?.openidId ?? req?.user?.openidID ?? undefined,
+    openidId: req?.user?.openidId ?? undefined,
     email: req?.user?.email ?? undefined,
   };
 
@@ -52,7 +51,7 @@ async function synchronizeAutumnBalance(userId, openidId) {
   }
 
   try {
-    const remoteBalance = await fetchTokenBalanceAutumn(openidId);
+    const remoteBalance = await fetchTokenBalanceAutumn({ openidId: openidId });
     if (typeof remoteBalance !== 'number' || Number.isNaN(remoteBalance)) {
       return;
     }
@@ -207,23 +206,17 @@ const checkBalance = async ({ req, res, txData }) => {
   let type = ViolationTypes.TOKEN_BALANCE_NO_SUB;
   let checkoutUrl;
 
-  if (openidId) {
+  if (openidId && email) {
     try {
-      const subscribed = await hasSubscriptionAutumn(openidId);
+      const subscribed = await hasSubscriptionAutumn({ openidId: openidId, email: email });
       type = subscribed ? ViolationTypes.TOKEN_BALANCE_SUB : ViolationTypes.TOKEN_BALANCE_NO_SUB;
 
       if (!subscribed) {
-        if (!email) {
-          logger.warn('[Balance.check] Missing email; unable to create Autumn checkout session', {
-            userId: txData?.user,
-          });
-        } else {
           checkoutUrl = await createCheckoutAutumn({
-            openidID: openidId,
+            openidId: openidId,
             email: email,
             fingerprint: email,
           });
-        }
       }
     } catch (error) {
       logger.error('[Balance.check] Failed to determine Autumn subscription status', {
@@ -232,9 +225,12 @@ const checkBalance = async ({ req, res, txData }) => {
       });
     }
   } else {
-    logger.warn('[Balance.check] Missing OpenID identifier; skipping Autumn subscription check', {
-      userId: txData?.user,
-    });
+    logger.warn(
+      '[Balance.check] Missing openidId identifier or/and email; skipping Autumn subscription check',
+      {
+        userId: txData?.user,
+      }
+    );
   }
 
   const errorMessage = {
