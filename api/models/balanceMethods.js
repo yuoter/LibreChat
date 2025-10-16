@@ -16,6 +16,7 @@ function isInvalidDate(date) {
 
 
 async function resolveAutumnUser(req, userId) {
+  logger.warn('For debugging: resolveAutumnUser in balanceMethods.js called');
   // add a tiny, consistent context for every log line
   const ctx = {
     userId: userId ?? null,
@@ -94,6 +95,7 @@ async function resolveAutumnUser(req, userId) {
 }
 
 async function synchronizeAutumnBalance(userId, openidId) {
+  logger.warn('For debugging: synchronizeAutumnBalance in balanceMethods.js called');
   if (!userId || !openidId) return;
 
   let remoteBalance;
@@ -161,6 +163,7 @@ const checkBalanceRecord = async function ({
   amount,
   endpointTokenConfig,
 }) {
+  logger.warn('For debugging: checkBalanceRecord in balanceMethods.js called');
   const multiplier = getMultiplier({ valueKey, tokenType, model, endpoint, endpointTokenConfig });
   const tokenCost = amount * multiplier;
 
@@ -269,6 +272,7 @@ const addIntervalToDate = (date, value, unit) => {
  * @throws {Error} Throws an error if there's an issue with the balance check.
  */
 const checkBalance = async ({ req, res, txData }) => {
+  logger.warn('For debugging: checkBalance in balanceMethods.js called');
   const { openidId, email } = await resolveAutumnUser(req, txData?.user);
 
   await synchronizeAutumnBalance(txData?.user, openidId);
