@@ -239,7 +239,7 @@ async function fetchTokenBalanceAutumn({ openidId }) {
       if (typeof entry === 'undefined') {
         logger.warn(
           { featureId: useAutumnTokenCreditsFeatureId },
-          'token-credits feature not found in features map'
+          'token-credits feature not found in features map',
         );
         return 0;
       }
@@ -261,7 +261,7 @@ async function fetchTokenBalanceAutumn({ openidId }) {
         if (!Number.isFinite(numeric) || numeric <= 0) {
           logger.warn(
             { featureId: useAutumnTokenCreditsFeatureId, balance: entry },
-            'Non-positive or invalid numeric entry in features map'
+            'Non-positive or invalid numeric entry in features map',
           );
           return 0;
         }
@@ -270,7 +270,7 @@ async function fetchTokenBalanceAutumn({ openidId }) {
 
       logger.warn(
         { featureId: useAutumnTokenCreditsFeatureId, entryType: typeof entry },
-        'Unexpected entry type for token-credits feature in features map'
+        'Unexpected entry type for token-credits feature in features map',
       );
       return 0;
     }
@@ -316,7 +316,7 @@ async function hasSubscriptionAutumn({ openidId, email }) {
     if (typeof data.allowed !== 'boolean') {
       logger.warn(
         { allowedType: typeof data.allowed, allowed: data.allowed },
-        'Autumn /check "allowed" is not boolean; coercing to Boolean'
+        'Autumn /check "allowed" is not boolean; coercing to Boolean',
       );
     }
 
@@ -378,7 +378,7 @@ async function recordUsageAutumn({
     if (httpStatus === 409) {
       logger.warn(
         { idempotencyKey },
-        'Idempotency conflict from Autumn; assuming usage already recorded'
+        'Idempotency conflict from Autumn; assuming usage already recorded',
       );
       return;
     }
