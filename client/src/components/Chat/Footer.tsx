@@ -37,9 +37,9 @@ export default function Footer({ className }: { className?: string }) {
   const mainContentParts = (
     typeof config?.customFooter === 'string'
       ? config.customFooter
-      : '[LibreChat ' +
+      : '[Video Summarizer ' +
         Constants.VERSION +
-        '](https://librechat.ai) - ' +
+        '](https://videosummarizerai.com) - ' +
         localize('com_ui_latest_footer')
   ).split('|');
 
