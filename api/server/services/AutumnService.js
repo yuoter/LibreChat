@@ -215,7 +215,7 @@ async function fetchTokenBalanceAutumn({ openidId }) {
     // Basic input validation
     if (!openidId) {
       logger.error('fetchTokenBalanceAutumn called without openidId');
-      return undefined;
+      return 0;
     }
     
     const { data } = await withRetry(() => autumn.customers.get(openidId));
@@ -297,7 +297,7 @@ async function hasSubscriptionAutumn({ openidId, email }) {
     // Basic input validation
     if (!openidId) {
       logger.error('hasSubscriptionAutumn called without openidId');
-      return undefined;
+      return false;
     }
     
     const { data } = await withRetry(() => autumn.check(payload));
@@ -398,15 +398,15 @@ async function createCheckoutAutumn({ openidId, email, fingerprint }) {
   logger.warn('For debugging: createCheckoutAutumn called');
   // Basic input validation
   if (!openidId) {
-    logger.error( 'createCheckoutAutumn called without openidId');
+    logger.error('createCheckoutAutumn called without openidId');
     return undefined;
   }
   if (!email) {
-    logger.error( 'createCheckoutAutumn called without email');
+    logger.error('createCheckoutAutumn called without email');
     return undefined;
   }
   if (!fingerprint) {
-    logger.warn( 'createCheckoutAutumn called without fingerprint');
+    logger.warn('createCheckoutAutumn called without fingerprint');
   }
 
   try {
@@ -422,7 +422,7 @@ async function createCheckoutAutumn({ openidId, email, fingerprint }) {
         success_url: successUrlForStripe,
         checkout_session_params: {
           cancel_url: cancelUrlForStripe,
-      },
+        },
       }),
     );
 
