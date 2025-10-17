@@ -53,8 +53,8 @@ export default defineConfig(({ command }) => ({
       },
       includeAssets: [],
       manifest: {
-        name: 'LibreChat',
-        short_name: 'LibreChat',
+        name: 'Video Summarizer',
+        short_name: 'Video Summarizer',
         display: 'standalone',
         background_color: '#000000',
         theme_color: '#009688',
