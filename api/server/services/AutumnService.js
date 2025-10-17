@@ -32,6 +32,8 @@ const useAutumnApiBase = sanitizeEnv(process.env.USEAUTUMN_API_BASE);
 const useAutumnProductId = sanitizeEnv(process.env.USEAUTUMN_PRODUCT_ID);
 const useAutumnTokenCreditsFeatureId = sanitizeEnv(process.env.USEAUTUMN_TOKEN_CREDITS_FEATURE_ID);
 const useAutumnHasSubscriptionFeatureId = sanitizeEnv(process.env.USEAUTUMN_HAS_SUBSCRIPTION_FEATURE_ID);
+const successUrlForStripe = sanitizeEnv(process.env.SUCCESS_URL_FOR_STRIPE);
+const cancelUrlForStripe = sanitizeEnv(process.env.CANCEL_URL_FOR_STRIPE);
 
 const missingAutumnConfig = [
   ['USEAUTUMN_KEY', useAutumnKey],
@@ -407,17 +409,31 @@ async function createCheckoutAutumn({ openidId, email, fingerprint }) {
   }
 
   try {
-    const res = await withRetry(() =>
-      autumn.attach({
-        customer_id: openidId,
-        product_id: useAutumnProductId,
-        force_checkout: true,
-        customer_data: {
-          email,
-          fingerprint,
-        },
-      }),
-    );
+    const checkoutOverrides = {};
+
+    if (successUrlForStripe) {
+      checkoutOverrides.success_url = successUrlForStripe;
+    }
+
+    if (cancelUrlForStripe) {
+      checkoutOverrides.cancel_url = cancelUrlForStripe;
+    }
+
+    const attachPayload = {
+      customer_id: openidId,
+      product_id: useAutumnProductId,
+      force_checkout: true,
+      customer_data: {
+        email,
+        fingerprint,
+      },
+    };
+
+    if (checkoutOverrides.success_url && checkoutOverrides.cancel_url) {
+      attachPayload.checkout = checkoutOverrides;
+    }
+
+    const res = await withRetry(() => autumn.attach(attachPayload));
 
     const status = res?.status ?? res?.data?.status;
     if (typeof status === 'number' && status >= 400) {

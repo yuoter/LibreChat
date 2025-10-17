@@ -167,3 +167,39 @@ const checkInsideSubscriptionEnv = () => {
 };
 
 checkInsideSubscriptionEnv();
+
+const stripeCheckoutEnv = [
+  {
+    name: 'SUCCESS_URL_FOR_STRIPE',
+    description: 'Stripe Checkout success redirect URL',
+  },
+  {
+    name: 'CANCEL_URL_FOR_STRIPE',
+    description: 'Stripe Checkout cancel redirect URL',
+  },
+];
+
+const checkStripeCheckoutEnv = () => {
+  console.log('\nStripe Checkout environment variables');
+
+  const rows = stripeCheckoutEnv.map(({ name, description }) => {
+    const provided = Boolean(process.env?.[name]);
+    return {
+      variable: name,
+      description,
+      provided: yesNo(provided),
+    };
+  });
+
+  console.table(rows);
+
+  const missing = stripeCheckoutEnv.filter(({ name }) => !process.env?.[name]);
+  if (missing.length > 0) {
+    const list = missing.map(({ name }) => name).join(', ');
+    console.warn(`\n⚠️  The following Stripe Checkout environment variables are not set: ${list}.`);
+  } else {
+    console.log('\n✅  All Stripe Checkout environment variables are set.');
+  }
+};
+
+checkStripeCheckoutEnv();
