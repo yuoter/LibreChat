@@ -622,6 +622,8 @@ export type TStartupConfig = {
   useAutumnProductId?: string;
   useAutumnTokenCreditsFeatureId?: string;
   useAutumnHasSubscriptionFeatureId?: string;
+  successUrlForStripe?: string;
+  cancelUrlForStripe?: string;
   discordLoginEnabled: boolean;
   facebookLoginEnabled: boolean;
   githubLoginEnabled: boolean;
