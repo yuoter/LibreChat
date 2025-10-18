@@ -124,6 +124,7 @@ const Error = ({ text }: { text: string }) => {
     const md = [
       `Insufficient Balance! Token Credits Balance: ${balance}. Prompt tokens: ${promptTokens}. Cost: ${tokenCost}.`,
       '',
+      'Open a new chat to see if this error persists.',
       `In case if you think that it is a mistake, you can contact: [${proSupportEmail}](mailto:${proSupportEmail})`,
       'Copy this message to the support and explain why you think it is a mistake.',
     ].join('\n');
