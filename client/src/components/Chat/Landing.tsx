@@ -1,4 +1,6 @@
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { easings } from '@react-spring/web';
 import { EModelEndpoint } from 'librechat-data-provider';
 import { BirthdayIcon, TooltipAnchor, SplitText } from '@librechat/client';
@@ -204,9 +206,25 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
           )}
         </div>
         {description && (
-          <div className="animate-fadeIn mt-4 max-w-md text-center text-sm font-normal text-text-primary">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            className="animate-fadeIn mt-4 max-w-md text-center text-sm font-normal text-text-primary"
+            components={{
+              a: ({ node: _n, className, ...props }) => (
+                <a
+                  {...props}
+                  className={`text-accent underline ${className ?? ''}`.trim()}
+                  target="_blank"
+                  rel="noreferrer"
+                />
+              ),
+              p: ({ node: _n, className, ...props }) => (
+                <p {...props} className={`text-center ${className ?? ''}`.trim()} />
+              ),
+            }}
+          >
             {description}
-          </div>
+          </ReactMarkdown>
         )}
       </div>
     </div>
