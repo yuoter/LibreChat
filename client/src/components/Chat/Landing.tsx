@@ -216,7 +216,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
                   className={`text-accent underline ${className ?? ''}`.trim()}
                   target="_blank"
                   rel="noreferrer"
-                />
+                </a>
               ),
               p: ({ node: _n, className, ...props }) => (
                 <p {...props} className={`text-center ${className ?? ''}`.trim()} />
