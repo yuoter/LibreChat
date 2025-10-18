@@ -1,4 +1,5 @@
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { easings } from '@react-spring/web';
 import { EModelEndpoint } from 'librechat-data-provider';
 import { BirthdayIcon, TooltipAnchor, SplitText } from '@librechat/client';
@@ -143,6 +144,11 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       ? getGreeting()
       : getGreeting() + (user?.name ? ', ' + user.name : '');
 
+  const greetingHasMarkdown = useMemo(() => {
+    const markdownLinkPattern = /\[[^\]]+\]\([^\)]+\)/;
+    return markdownLinkPattern.test(greetingText);
+  }, [greetingText]);
+
   return (
     <div
       className={`flex h-full transform-gpu flex-col items-center justify-center pb-16 transition-all duration-200 ${centerFormOnLanding ? 'max-h-full sm:max-h-0' : 'max-h-full'} ${getDynamicMargin}`}
@@ -187,6 +193,26 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
                 onLineCountChange={handleLineCountChange}
               />
             </div>
+          ) : greetingHasMarkdown ? (
+            <ReactMarkdown
+              className={`${getTextSizeClass(greetingText)} font-medium text-text-primary text-center`}
+              components={{
+                a: ({ node: _n, href, children, ...otherProps }) => (
+                  <a
+                    className="text-primary transition-colors hover:underline"
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    {...otherProps}
+                  >
+                    {children}
+                  </a>
+                ),
+                p: ({ node: _n, ...props }) => <span {...props} />,
+              }}
+            >
+              {greetingText}
+            </ReactMarkdown>
           ) : (
             <SplitText
               key={`split-text-${greetingText}${user?.name ? '-user' : ''}`}
