@@ -27,6 +27,48 @@ function getTextSizeClass(text: string | undefined | null) {
   return 'text-lg sm:text-md';
 }
 
+function hasMarkdownLinks(text: string): boolean {
+  // Check for markdown link syntax [text](url)
+  return /\[([^\]]+)\]\(([^)]+)\)/.test(text);
+}
+
+function parseMarkdownLinks(text: string): React.ReactNode {
+  // Parse markdown links [text](url) and convert to JSX
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  const regex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    // Add text before the link
+    if (match.index > lastIndex) {
+      parts.push(text.substring(lastIndex, match.index));
+    }
+    
+    // Add the link
+    parts.push(
+      <a
+        key={match.index}
+        href={match[2]}
+        className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 underline"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {match[1]}
+      </a>
+    );
+    
+    lastIndex = regex.lastIndex;
+  }
+  
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex));
+  }
+  
+  return parts.length > 0 ? parts : text;
+}
+
 export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: boolean }) {
   const { conversation } = useChatContext();
   const agentsMap = useAgentsMapContext();
@@ -187,6 +229,13 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
                 onLineCountChange={handleLineCountChange}
               />
             </div>
+          ) : hasMarkdownLinks(greetingText) ? (
+            <div
+              className={`${getTextSizeClass(greetingText)} font-medium text-text-primary text-center animate-fadeIn`}
+              style={{ animationDelay: '0.1s' }}
+            >
+              {parseMarkdownLinks(greetingText)}
+            </div>
           ) : (
             <SplitText
               key={`split-text-${greetingText}${user?.name ? '-user' : ''}`}
@@ -205,7 +254,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
         </div>
         {description && (
           <div className="animate-fadeIn mt-4 max-w-md text-center text-sm font-normal text-text-primary">
-            {description}
+            {hasMarkdownLinks(description) ? parseMarkdownLinks(description) : description}
           </div>
         )}
       </div>
