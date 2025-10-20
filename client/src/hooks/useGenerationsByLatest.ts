@@ -1,4 +1,6 @@
-import { EModelEndpoint, isAssistantsEndpoint } from 'librechat-data-provider';
+import { useMemo } from 'react';
+import { EModelEndpoint, isAssistantsEndpoint, getConfigDefaults } from 'librechat-data-provider';
+import { useGetStartupConfig } from '~/data-provider';
 
 type TUseGenerations = {
   error?: boolean;
@@ -12,6 +14,8 @@ type TUseGenerations = {
   isCreatedByUser?: boolean;
 };
 
+const defaultInterface = getConfigDefaults().interface;
+
 export default function useGenerationsByLatest({
   error = false,
   endpoint,
@@ -23,6 +27,12 @@ export default function useGenerationsByLatest({
   latestMessageId,
   isCreatedByUser = false,
 }: TUseGenerations) {
+  const { data: startupConfig } = useGetStartupConfig();
+  const interfaceConfig = useMemo(
+    () => startupConfig?.interface ?? defaultInterface,
+    [startupConfig],
+  );
+
   const isEditableEndpoint = Boolean(
     [
       EModelEndpoint.openAI,
@@ -68,7 +78,8 @@ export default function useGenerationsByLatest({
     !branchingSupported ||
     (!isEditableEndpoint && !isCreatedByUser);
 
-  const forkingSupported = !isAssistantsEndpoint(endpoint) && !searchResult;
+  const forkingSupported =
+    interfaceConfig.forking === true && !isAssistantsEndpoint(endpoint) && !searchResult;
 
   return {
     forkingSupported,
