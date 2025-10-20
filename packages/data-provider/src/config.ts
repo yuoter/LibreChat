@@ -552,6 +552,8 @@ export const interfaceSchema = z
       .optional(),
     fileSearch: z.boolean().optional(),
     fileCitations: z.boolean().optional(),
+    tools: z.boolean().optional(),
+    attachFiles: z.boolean().optional(),
   })
   .default({
     endpointsMenu: true,
@@ -577,6 +579,8 @@ export const interfaceSchema = z
     },
     fileSearch: true,
     fileCitations: true,
+    tools: true,
+    attachFiles: true,
   });
 
 export type TInterfaceConfig = z.infer<typeof interfaceSchema>;
