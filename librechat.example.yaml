@@ -111,6 +111,10 @@ interface:
   # Controls visibility of the file attachment panel in the side navigation
   attachFiles: true
   
+  # Enable/disable Forking feature below messages (default: true)
+  # Controls visibility of the fork button that allows branching conversations
+  forking: true
+  
   # People Picker permissions (default: true for all)
   peoplePicker:
     users: true
