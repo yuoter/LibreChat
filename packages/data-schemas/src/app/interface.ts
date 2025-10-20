@@ -43,6 +43,7 @@ export async function loadDefaultInterface({
     customWelcome: interfaceConfig?.customWelcome ?? defaults.customWelcome,
     tools: interfaceConfig?.tools ?? defaults.tools,
     attachFiles: interfaceConfig?.attachFiles ?? defaults.attachFiles,
+    forking: interfaceConfig?.forking ?? defaults.forking,
 
     // Permissions - only include if explicitly configured
     bookmarks: interfaceConfig?.bookmarks,
