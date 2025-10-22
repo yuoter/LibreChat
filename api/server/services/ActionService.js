@@ -33,6 +33,11 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const toolNameRegex = /^[a-zA-Z0-9_-]+$/;
 const replaceSeparatorRegex = new RegExp(actionDomainSeparator, 'g');
 
+// In-memory cache for default actions
+let defaultActionsCache = null;
+let defaultActionsCacheTimestamp = 0;
+const DEFAULT_ACTIONS_CACHE_TTL = Time.TEN_MINUTES; // Cache for 10 minutes
+
 /**
  * Validates tool name against regex pattern and updates if necessary.
  * @param {object} params - The parameters for the function.
@@ -632,6 +637,14 @@ async function seedDefaultActions(appConfig) {
     // Store the hash for future comparisons
     await hashCache.set('default_actions_hash', currentHash);
 
+    // Clear the in-memory caches to force reload
+    clearDefaultActionsCache();
+
+    // Also clear the processed action cache in ToolService
+    // Require here to avoid circular dependency
+    const { clearProcessedActionCache } = require('./ToolService');
+    clearProcessedActionCache();
+
     logger.info('Default actions seeding completed');
   } catch (error) {
     logger.error('Error seeding default actions', error);
@@ -639,14 +652,40 @@ async function seedDefaultActions(appConfig) {
 }
 
 /**
- * Loads default actions from the database.
+ * Clears the in-memory cache for default actions.
+ */
+function clearDefaultActionsCache() {
+  defaultActionsCache = null;
+  defaultActionsCacheTimestamp = 0;
+  logger.debug('Default actions cache cleared');
+}
+
+/**
+ * Loads default actions from the database with caching.
  * Default actions are identified by the system user ID.
+ * Results are cached in memory for 10 minutes to avoid repeated DB queries and OpenAPI parsing.
  *
  * @returns {Promise<Action[] | null>} A promise that resolves to an array of default actions.
  */
 async function loadDefaultActionSets() {
   const SYSTEM_USER_ID = 'system_default_actions';
-  return await getActions({ user: SYSTEM_USER_ID }, true);
+
+  // Check if cache is still valid
+  const now = Date.now();
+  if (defaultActionsCache && now - defaultActionsCacheTimestamp < DEFAULT_ACTIONS_CACHE_TTL) {
+    logger.debug('Returning cached default actions');
+    return defaultActionsCache;
+  }
+
+  // Load from database
+  logger.debug('Loading default actions from database');
+  const actions = await getActions({ user: SYSTEM_USER_ID }, true);
+
+  // Update cache
+  defaultActionsCache = actions;
+  defaultActionsCacheTimestamp = now;
+
+  return actions;
 }
 
 module.exports = {
@@ -659,4 +698,5 @@ module.exports = {
   domainParser,
   seedDefaultActions,
   loadDefaultActionSets,
+  clearDefaultActionsCache,
 };
