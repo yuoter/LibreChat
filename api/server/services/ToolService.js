@@ -25,6 +25,7 @@ const {
   createActionTool,
   decryptMetadata,
   loadActionSets,
+  loadDefaultActionSets,
   domainParser,
 } = require('./ActionService');
 const { processFileURL, uploadImageBuffer } = require('~/server/services/Files/process');
@@ -212,10 +213,17 @@ async function processRequiredActions(client, requiredActions) {
 
       // Load all action sets once if not already loaded
       if (!actionSets.length) {
-        actionSets =
+        // Load assistant-specific actions
+        const assistantActionSets =
           (await loadActionSets({
             assistant_id: client.req.body.assistant_id,
           })) ?? [];
+
+        // Load default actions from system
+        const defaultActionSets = (await loadDefaultActionSets()) ?? [];
+
+        // Merge default actions with assistant-specific actions
+        actionSets = [...defaultActionSets, ...assistantActionSets];
 
         // Process all action sets once
         // Map domains to their processed action sets
@@ -494,7 +502,16 @@ async function loadAgentTools({ req, res, agent, signal, tool_resources, openAIA
     };
   }
 
-  const actionSets = (await loadActionSets({ agent_id: agent.id })) ?? [];
+  // Load agent-specific actions
+  const agentActionSets = (await loadActionSets({ agent_id: agent.id })) ?? [];
+
+  // Load default actions from system
+  const defaultActionSets = (await loadDefaultActionSets()) ?? [];
+
+  // Merge default actions with agent-specific actions
+  // Agent-specific actions take precedence over defaults (same domain will be overridden)
+  const actionSets = [...defaultActionSets, ...agentActionSets];
+
   if (actionSets.length === 0) {
     if (_agentTools.length > 0 && agentTools.length === 0) {
       logger.warn(`No tools found for the specified tool calls: ${_agentTools.join(', ')}`);
