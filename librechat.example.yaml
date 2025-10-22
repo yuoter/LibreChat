@@ -195,6 +195,47 @@ actions:
     - 'librechat.ai'
     - 'google.com'
 
+  # Default actions available to all models/agents
+  # These actions will be seeded into the database on startup
+  # and automatically available without needing to configure them per-agent
+  # defaults:
+  #   - name: "star_wars_api"
+  #     domain: "swapi.dev"
+  #     description: "Access Star Wars universe data"
+  #     openapi_spec_url: "https://swapi.dev/api/schema"
+  #     auth:
+  #       type: "none"
+  #
+  #   - name: "weather_api"
+  #     domain: "api.weather.com"
+  #     description: "Get weather information"
+  #     # Use openapi_spec for inline specification
+  #     openapi_spec: |
+  #       openapi: 3.0.0
+  #       info:
+  #         title: Weather API
+  #         version: 1.0.0
+  #       servers:
+  #         - url: https://api.weather.com
+  #       paths:
+  #         /weather:
+  #           get:
+  #             operationId: getWeather
+  #             summary: Get current weather
+  #             parameters:
+  #               - name: city
+  #                 in: query
+  #                 required: true
+  #                 schema:
+  #                   type: string
+  #             responses:
+  #               '200':
+  #                 description: Weather data
+  #     auth:
+  #       type: "service_http"
+  #       authorization_type: "bearer"
+  #       api_key: "${WEATHER_API_KEY}"  # Use environment variables for secrets
+
 # Example MCP Servers Object Structure
 # mcpServers:
 #   everything:
