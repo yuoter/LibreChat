@@ -14,7 +14,7 @@
 | Phase 2: File Loading | ✅ Complete | ~45min | File utilities for specs, instructions, icons |
 | Phase 3: Sync Service | ✅ Complete | ~1h | Database synchronization logic |
 | Phase 4: Server Integration | ✅ Complete | ~15min | Hook sync into server startup |
-| Phase 5: API Modifications | ⏳ In Progress | - | Endpoints and middleware |
+| Phase 5: API Modifications | ✅ Complete | ~1h | Endpoints and middleware |
 | Phase 6: Frontend Changes | 🔄 Not Started | - | UI components updates |
 | Phase 7: Token Verification | 🔄 Not Started | - | Verify token tracking works |
 | Phase 8: Debug Logging | 🔄 Not Started | - | Comprehensive logging |
@@ -157,6 +157,42 @@
 - Error: Complete sync failure with details
 - Duration tracking for performance monitoring
 
+### 2025-10-23 - Phase 5 Complete
+
+**Completed:**
+- ✅ Created `checkDefaultAgentAccess.js` middleware:
+  - Detects default agents automatically
+  - Grants access to all authenticated users
+  - Prevents modification/deletion attempts
+  - Sets request context flags
+- ✅ Modified `canAccessAgentResource.js`:
+  - Checks for default agents before ACL
+  - Grants VIEW/USE permissions for all users
+  - Blocks EDIT/DELETE on default agents
+  - Returns 403 for modification attempts
+- ✅ Modified `getEndpointsConfig.js`:
+  - Extracts defaultAgents from configuration
+  - Sets defaultAgentsOnly flag when configured
+  - Passes flag to frontend via API
+- ✅ Modified `getListAgentsHandler` in v1.js:
+  - Filters agents when defaultAgentsOnly is true
+  - Returns only default agents (author = DEFAULT_ACTIONS_OBJECT_ID)
+  - Marks default agents with isDefault flag
+  - Bypasses ACL for default agents (accessible to all)
+
+**Permission Handling:**
+- VIEW (1): Granted automatically for default agents
+- USE (16): Granted automatically for default agents
+- EDIT (2): Blocked with 403 Forbidden
+- DELETE (4): Blocked with 403 Forbidden
+
+**Key Features:**
+- API-level filtering when defaultAgentsOnly is enabled
+- Default agents accessible to all authenticated users
+- Cannot create/edit/delete default agents via API
+- isDefault flag helps frontend identify default agents
+- Comprehensive debug logging for troubleshooting
+
 ---
 
 ## Deviations from Plan
@@ -184,6 +220,7 @@
 - `api/server/services/DefaultAgents/hashUtils.js`
 - `api/server/services/DefaultAgents/sync.js`
 - `api/server/services/DefaultAgents/index.js`
+- `api/server/middleware/checkDefaultAgentAccess.js`
 
 ---
 
@@ -195,6 +232,9 @@
 - `packages/data-provider/src/config.ts` - Added default agents schemas
 - `librechat.example.yaml` - Added default agents examples
 - `api/server/index.js` - Added default agents sync to server startup
+- `api/server/middleware/accessResources/canAccessAgentResource.js` - Added default agent access logic
+- `api/server/services/Config/getEndpointsConfig.js` - Added defaultAgentsOnly flag
+- `api/server/controllers/agents/v1.js` - Added default agents filtering to list handler
 
 ---
 
