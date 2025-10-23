@@ -254,6 +254,113 @@ endpoints:
   #   minRelevanceScore: 0.45
   #   # (optional) Agent Capabilities available to all users. Omit the ones you wish to exclude. Defaults to list below.
   #   capabilities: ["execute_code", "file_search", "actions", "tools"]
+  #
+  #   # (optional) Default agents available to all users
+  #   # When defined, these agents are automatically synced to the database and available to all users
+  #   # If you want ONLY default agents to be available (hiding custom endpoints, assistants, etc.),
+  #   # configure this list and users will only see these agents in the model selector
+  #   defaultAgents:
+  #     # Example: Customer Support Agent
+  #     - id: "customer-support"
+  #       name: "Customer Support Agent"
+  #       description: "Helps with customer inquiries and support tickets"
+  #
+  #       # Instructions: Use either inline or file-based
+  #       # Option 1: Inline instructions
+  #       instructions: "You are a helpful customer support agent. Always be polite and professional."
+  #       # Option 2: File-based instructions (relative to config directory or absolute path)
+  #       # instructionsFile: "./agents/customer-support/instructions.txt"
+  #
+  #       # Icon: Use either inline data URL or file path
+  #       # Option 1: File path (will be uploaded to configured storage)
+  #       # iconFile: "./agents/customer-support/icon.png"
+  #       # Option 2: Inline data URL
+  #       # icon: "data:image/png;base64,..."
+  #
+  #       # Provider and model (required)
+  #       provider: "openai"
+  #       model: "gpt-4o"
+  #
+  #       # Optional: Model parameters
+  #       model_parameters:
+  #         temperature: 0.7
+  #         max_tokens: 2000
+  #
+  #       # Optional: Category for organization
+  #       category: "support"
+  #
+  #       # Optional: Recursion limit for this agent
+  #       recursion_limit: 25
+  #
+  #       # Optional: Tools available to this agent
+  #       tools:
+  #         - "web_search"
+  #         - "code_interpreter"
+  #
+  #       # Optional: Actions for this agent
+  #       actions:
+  #         - domain: "api.example.com"
+  #           # OpenAPI spec: Use either inline or file-based
+  #           # Option 1: File-based spec (YAML or JSON)
+  #           specFile: "./actions/customer-support/openapi.yaml"
+  #           # Option 2: Inline spec (YAML string)
+  #           # spec: |
+  #           #   openapi: 3.0.0
+  #           #   info:
+  #           #     title: Customer Support API
+  #           #     version: 1.0.0
+  #           #   paths:
+  #           #     /tickets:
+  #           #       get:
+  #           #         summary: List support tickets
+  #           #         responses:
+  #           #           200:
+  #           #             description: Success
+  #
+  #           # Authentication
+  #           auth:
+  #             type: "service_http"
+  #             # Use environment variables for sensitive data
+  #             api_key: "${CUSTOMER_SUPPORT_API_KEY}"
+  #             custom_auth_header: "X-API-Key"
+  #
+  #           # Optional: Privacy policy URL
+  #           privacy_policy_url: "https://example.com/privacy"
+  #
+  #     # Example: Sales Agent with OAuth
+  #     - id: "sales-agent"
+  #       name: "Sales Assistant"
+  #       description: "Assists with sales inquiries and CRM operations"
+  #       instructionsFile: "./agents/sales/instructions.txt"
+  #       iconFile: "./agents/sales/icon.png"
+  #       provider: "anthropic"
+  #       model: "claude-sonnet-4"
+  #       category: "sales"
+  #       model_parameters:
+  #         temperature: 0.5
+  #       actions:
+  #         - domain: "crm.example.com"
+  #           specFile: "./actions/sales/crm-api.yaml"
+  #           auth:
+  #             type: "oauth"
+  #             client_url: "https://crm.example.com/oauth/authorize"
+  #             authorization_url: "https://crm.example.com/oauth/token"
+  #             scope: "read:contacts write:opportunities"
+  #             oauth_client_id: "${SALES_CRM_CLIENT_ID}"
+  #             oauth_client_secret: "${SALES_CRM_CLIENT_SECRET}"
+  #             token_exchange_method: "default_post"
+  #           privacy_policy_url: "https://crm.example.com/privacy"
+  #
+  #     # Example: Technical Support Agent (minimal configuration)
+  #     - id: "tech-support"
+  #       name: "Technical Support"
+  #       description: "Provides technical assistance and troubleshooting"
+  #       instructions: "You are a technical support specialist. Help users troubleshoot technical issues."
+  #       provider: "openai"
+  #       model: "gpt-4o-mini"
+  #       tools:
+  #         - "execute_code"
+  #         - "web_search"
   custom:
     # Groq Example
     - name: 'groq'

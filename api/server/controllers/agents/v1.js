@@ -448,8 +448,23 @@ const getListAgentsHandler = async (req, res) => {
     } else if (typeof requiredPermission !== 'number') {
       requiredPermission = PermissionBits.VIEW;
     }
+
+    // Check if only default agents should be shown
+    const { getDefaultObjectId } = require('~/server/services/DefaultAgents');
+    const appConfig = req.config;
+    const defaultAgentsOnly = appConfig?.endpoints?.agents?.defaultAgentsOnly;
+    const defaultObjectId = getDefaultObjectId();
+
     // Base filter
     const filter = {};
+
+    // If defaultAgentsOnly is enabled, filter to only show default agents
+    if (defaultAgentsOnly) {
+      filter.author = defaultObjectId;
+      logger.debug('[getListAgents] Filtering to show only default agents', {
+        defaultObjectId,
+      });
+    }
 
     // Handle category filter - only apply if category is defined
     if (category !== undefined && category.trim() !== '') {
@@ -470,17 +485,35 @@ const getListAgentsHandler = async (req, res) => {
         { description: { $regex: search.trim(), $options: 'i' } },
       ];
     }
-    // Get agent IDs the user has VIEW access to via ACL
-    const accessibleIds = await findAccessibleResources({
-      userId,
-      role: req.user.role,
-      resourceType: ResourceType.AGENT,
-      requiredPermissions: requiredPermission,
-    });
-    const publiclyAccessibleIds = await findPubliclyAccessibleResources({
-      resourceType: ResourceType.AGENT,
-      requiredPermissions: PermissionBits.VIEW,
-    });
+
+    let accessibleIds;
+    let publiclyAccessibleIds;
+
+    if (defaultAgentsOnly) {
+      // When showing only default agents, we need to get all default agent IDs
+      // Default agents are accessible to all authenticated users
+      const Agent = require('~/models/Agent');
+      const defaultAgents = await Agent.find({ author: defaultObjectId }).select('_id');
+      accessibleIds = defaultAgents.map((agent) => agent._id);
+      publiclyAccessibleIds = []; // Default agents don't need public access marking
+
+      logger.debug('[getListAgents] Found default agents', {
+        count: accessibleIds.length,
+      });
+    } else {
+      // Normal operation: use ACL to determine accessible agents
+      accessibleIds = await findAccessibleResources({
+        userId,
+        role: req.user.role,
+        resourceType: ResourceType.AGENT,
+        requiredPermissions: requiredPermission,
+      });
+      publiclyAccessibleIds = await findPubliclyAccessibleResources({
+        resourceType: ResourceType.AGENT,
+        requiredPermissions: PermissionBits.VIEW,
+      });
+    }
+
     // Use the new ACL-aware function
     const data = await getListAgentsByAccess({
       accessibleIds,
@@ -488,14 +521,20 @@ const getListAgentsHandler = async (req, res) => {
       limit,
       after: cursor,
     });
+
     if (data?.data?.length) {
       data.data = data.data.map((agent) => {
         if (publiclyAccessibleIds.some((id) => id.equals(agent._id))) {
           agent.isPublic = true;
         }
+        // Mark default agents
+        if (agent.author?.toString() === defaultObjectId) {
+          agent.isDefault = true;
+        }
         return agent;
       });
     }
+
     return res.json(data);
   } catch (error) {
     logger.error('[/Agents] Error listing Agents', error);
