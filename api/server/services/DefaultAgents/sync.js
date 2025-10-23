@@ -251,7 +251,7 @@ async function syncActions(agentId, actionsConfig, defaultObjectId) {
       }
 
       // Encrypt sensitive metadata
-      const encryptedMetadata = encryptMetadata(metadata);
+      const encryptedMetadata = await encryptMetadata(metadata);
 
       // Prepare action data
       const actionData = {
@@ -262,8 +262,11 @@ async function syncActions(agentId, actionsConfig, defaultObjectId) {
         metadata: encryptedMetadata,
       };
 
-      // Create or update action
-      const action = await updateAction(actionData);
+      // Create or update action (using proper updateAction signature)
+      const action = await updateAction(
+        { action_id: actionId, user: defaultObjectId },
+        actionData,
+      );
 
       logger.info('Synced action', {
         agentId,
@@ -352,9 +355,10 @@ async function createDefaultAgent(agentConfig, instructions, avatar, defaultObje
  * @param {object} agentConfig - The new agent configuration
  * @param {string} instructions - The new instructions
  * @param {object} avatar - The new avatar
+ * @param {string} defaultObjectId - The default object ID for the author
  * @returns {Promise<object>} The updated agent
  */
-async function updateDefaultAgent(existingAgent, agentConfig, instructions, avatar) {
+async function updateDefaultAgent(existingAgent, agentConfig, instructions, avatar, defaultObjectId) {
   logger.info('Updating existing default agent', {
     agentId: agentConfig.id,
     name: agentConfig.name,
@@ -476,7 +480,7 @@ async function syncAgent(agentConfig, defaultObjectId) {
           existingHash: existingHash?.substring(0, 8),
           newHash: newConfigHash.substring(0, 8),
         });
-        agent = await updateDefaultAgent(existingAgent, agentConfig, instructions, avatar);
+        agent = await updateDefaultAgent(existingAgent, agentConfig, instructions, avatar, defaultObjectId);
         logger.info('[STEP 4/6] Agent updated successfully', { agentId: agentConfig.id });
       }
     } else {
@@ -558,7 +562,7 @@ async function cleanupRemovedAgents(configuredAgentIds, defaultObjectId) {
 
   try {
     // Find all default agents in database
-    const Agent = require('~/models/Agent');
+    const { Agent } = require('~/db/models');
     const allDefaultAgents = await Agent.find({ author: defaultObjectId });
 
     logger.debug('Found default agents in database', {
