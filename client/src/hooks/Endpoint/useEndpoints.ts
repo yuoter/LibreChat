@@ -57,6 +57,19 @@ export const useEndpoints = ({
     if (!interfaceConfig.modelSelect) {
       return [];
     }
+
+    // Check if only default agents should be shown
+    const defaultAgentsOnly = endpointsConfig?.[EModelEndpoint.agents]?.defaultAgentsOnly;
+
+    // If defaultAgentsOnly is enabled, only show agents endpoint
+    if (defaultAgentsOnly) {
+      if (hasAgentAccess) {
+        return [EModelEndpoint.agents];
+      }
+      return [];
+    }
+
+    // Normal filtering logic
     const result: EModelEndpoint[] = [];
     for (let i = 0; i < endpoints.length; i++) {
       if (endpoints[i] === EModelEndpoint.agents && !hasAgentAccess) {
@@ -69,7 +82,7 @@ export const useEndpoints = ({
     }
 
     return result;
-  }, [endpoints, hasAgentAccess, includedEndpoints, interfaceConfig.modelSelect]);
+  }, [endpoints, hasAgentAccess, includedEndpoints, interfaceConfig.modelSelect, endpointsConfig]);
 
   const endpointRequiresUserKey = useCallback(
     (ep: string) => {

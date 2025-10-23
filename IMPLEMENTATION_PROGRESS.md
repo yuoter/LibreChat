@@ -15,9 +15,9 @@
 | Phase 3: Sync Service | ✅ Complete | ~1h | Database synchronization logic |
 | Phase 4: Server Integration | ✅ Complete | ~15min | Hook sync into server startup |
 | Phase 5: API Modifications | ✅ Complete | ~1h | Endpoints and middleware |
-| Phase 6: Frontend Changes | 🔄 Not Started | - | UI components updates |
-| Phase 7: Token Verification | 🔄 Not Started | - | Verify token tracking works |
-| Phase 8: Debug Logging | 🔄 Not Started | - | Comprehensive logging |
+| Phase 6: Frontend Changes | ✅ Complete | ~45min | UI filtering for default agents |
+| Phase 7: Token Verification | ✅ Complete | N/A | Verified - works without changes |
+| Phase 8: Debug Logging | ✅ Complete | N/A | Integrated in all phases |
 | Phase 9: Documentation | 🔄 Not Started | - | Examples and guides |
 
 **Legend**: 🔄 Not Started | ⏳ In Progress | ✅ Complete | ⚠️ Issues Found
@@ -222,6 +222,49 @@
 - `api/server/services/DefaultAgents/index.js`
 - `api/server/middleware/checkDefaultAgentAccess.js`
 
+### 2025-10-23 - Phases 6-8 Complete
+
+**Phase 6: Frontend UI Modifications - Complete**
+
+- ✅ Modified `useEndpoints.ts`:
+  - Checks for defaultAgentsOnly flag from endpointsConfig
+  - When enabled, filters endpoints to show ONLY agents
+  - Hides all other endpoints (custom, assistants, etc.)
+  - Maintains normal filtering when flag is not set
+- ✅ Modified `ModelSelectorContext.tsx`:
+  - Filters modelSpecs to exclude non-agent specs when defaultAgentsOnly
+  - Only shows agent-related model specs
+  - Keeps agent permission filtering intact
+- ✅ Verified `useSideNavLinks.ts`:
+  - Agent Builder already hidden when disableBuilder is true
+  - No changes needed (already implemented)
+
+**UI Behavior When DefaultAgentsOnly is Enabled:**
+- Model selector shows ONLY the agents endpoint
+- No custom endpoints visible
+- No assistants endpoint visible
+- No non-agent model specs shown
+- Agent Builder panel hidden (if disableBuilder: true)
+- Edit/Delete prevented by API (403 responses)
+
+**Phase 7: Token Tracking - Verified**
+
+- ✅ Reviewed existing token tracking in api/models/spendTokens.js
+- ✅ Confirmed transactions created for agent executions
+- ✅ Default agents use same execution flow as regular agents
+- ✅ No changes needed - works automatically
+
+**Phase 8: Debug Logging - Complete**
+
+- ✅ Comprehensive logging added in all phases:
+  - Phase 2: File loading operations
+  - Phase 3: Sync service with detailed steps
+  - Phase 4: Server startup integration
+  - Phase 5: API middleware and filtering
+- ✅ Respects DEBUG_LOGGING environment variable
+- ✅ Structured logging with context
+- ✅ Error logging with stack traces
+
 ---
 
 ## Files Modified
@@ -235,6 +278,8 @@
 - `api/server/middleware/accessResources/canAccessAgentResource.js` - Added default agent access logic
 - `api/server/services/Config/getEndpointsConfig.js` - Added defaultAgentsOnly flag
 - `api/server/controllers/agents/v1.js` - Added default agents filtering to list handler
+- `client/src/hooks/Endpoint/useEndpoints.ts` - Added defaultAgentsOnly filtering
+- `client/src/components/Chat/Menus/Endpoints/ModelSelectorContext.tsx` - Filtered modelSpecs
 
 ---
 
