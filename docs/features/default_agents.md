@@ -41,7 +41,7 @@ endpoints:
 In your `.env` file:
 
 ```bash
-DEFAULT_ACTIONS_OBJECT_ID=000000000000000000000000
+DEFAULT_OBJECT_ID=000000000000000000000000
 ```
 
 ### 3. Restart Server
@@ -249,7 +249,7 @@ Add API keys for your actions in `.env`:
 
 ```bash
 # Default Agents Configuration
-DEFAULT_ACTIONS_OBJECT_ID=000000000000000000000000
+DEFAULT_OBJECT_ID=000000000000000000000000
 
 # Action API Keys
 SUPPORT_API_KEY=your-key-here

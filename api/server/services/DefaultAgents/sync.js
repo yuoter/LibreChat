@@ -23,7 +23,7 @@ const logger = createLogger('DefaultAgentsSync');
  * @returns {string} The default object ID
  */
 function getDefaultObjectId() {
-  return process.env.DEFAULT_ACTIONS_OBJECT_ID || '000000000000000000000000';
+  return process.env.DEFAULT_OBJECT_ID || '000000000000000000000000';
 }
 
 /**

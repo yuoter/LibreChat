@@ -10,7 +10,7 @@
 
 | Phase | Status | Duration | Notes |
 |-------|--------|----------|-------|
-| Phase 1: Configuration Setup | ✅ Complete | ~30min | Added DEFAULT_ACTIONS_OBJECT_ID, schemas, YAML examples |
+| Phase 1: Configuration Setup | ✅ Complete | ~30min | Added DEFAULT_OBJECT_ID, schemas, YAML examples |
 | Phase 2: File Loading | ✅ Complete | ~45min | File utilities for specs, instructions, icons |
 | Phase 3: Sync Service | ✅ Complete | ~1h | Database synchronization logic |
 | Phase 4: Server Integration | ✅ Complete | ~15min | Hook sync into server startup |
@@ -34,7 +34,7 @@
 ### 2025-10-23 - Phase 1 Complete
 
 **Completed:**
-- ✅ Added DEFAULT_ACTIONS_OBJECT_ID to .env.example with comprehensive documentation
+- ✅ Added DEFAULT_OBJECT_ID to .env.example with comprehensive documentation
 - ✅ Created schema definitions in packages/data-provider/src/config.ts:
   - `defaultActionAuthSchema` for action authentication
   - `defaultActionConfigSchema` for action configuration
@@ -47,7 +47,7 @@
   - Documented all available options and patterns
 
 **Files Modified:**
-- .env.example - Added DEFAULT_ACTIONS_OBJECT_ID and example API keys section
+- .env.example - Added DEFAULT_OBJECT_ID and example API keys section
 - packages/data-provider/src/config.ts - Added default agents schemas
 - librechat.example.yaml - Added comprehensive examples with documentation
 
@@ -176,7 +176,7 @@
   - Passes flag to frontend via API
 - ✅ Modified `getListAgentsHandler` in v1.js:
   - Filters agents when defaultAgentsOnly is true
-  - Returns only default agents (author = DEFAULT_ACTIONS_OBJECT_ID)
+  - Returns only default agents (author = DEFAULT_OBJECT_ID)
   - Marks default agents with isDefault flag
   - Bypasses ACL for default agents (accessible to all)
 
@@ -197,13 +197,13 @@
 
 ## Deviations from Plan
 
-### Variable Naming: DEFAULT_ACTIONS_OBJECT_ID vs DEFAULT_OBJECT_ID
+### Variable Naming: DEFAULT_OBJECT_ID vs DEFAULT_OBJECT_ID
 
-**Deviation**: Using `DEFAULT_ACTIONS_OBJECT_ID` instead of `DEFAULT_OBJECT_ID`
+**Deviation**: Using `DEFAULT_OBJECT_ID` instead of `DEFAULT_OBJECT_ID`
 
-**Reason**: The implementation plan was modified to use `DEFAULT_OBJECT_ID`, but I had already implemented Phase 1 with `DEFAULT_ACTIONS_OBJECT_ID`. The longer name is more descriptive and specific about its purpose (identifying default actions and agents). This is a minor naming preference and does not affect functionality.
+**Reason**: The implementation plan was modified to use `DEFAULT_OBJECT_ID`, but I had already implemented Phase 1 with `DEFAULT_OBJECT_ID`. The longer name is more descriptive and specific about its purpose (identifying default actions and agents). This is a minor naming preference and does not affect functionality.
 
-**Impact**: None - just a variable naming difference. All code will consistently use `DEFAULT_ACTIONS_OBJECT_ID`.
+**Impact**: None - just a variable naming difference. All code will consistently use `DEFAULT_OBJECT_ID`.
 
 ---
 
@@ -271,7 +271,7 @@
 
 *List of existing files modified during implementation*
 
-- `.env.example` - Added DEFAULT_ACTIONS_OBJECT_ID configuration
+- `.env.example` - Added DEFAULT_OBJECT_ID configuration
 - `packages/data-provider/src/config.ts` - Added default agents schemas
 - `librechat.example.yaml` - Added default agents examples
 - `api/server/index.js` - Added default agents sync to server startup
@@ -310,7 +310,7 @@
 ## Next Steps
 
 1. Begin Phase 1: Configuration and Environment Setup
-   - Add DEFAULT_ACTIONS_OBJECT_ID to .env.example
+   - Add DEFAULT_OBJECT_ID to .env.example
    - Create configuration schema
    - Update librechat.example.yaml
 
