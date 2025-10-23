@@ -36,44 +36,65 @@ async function loadAgentFileContent(agentConfig) {
 
   // Load instructions from file if specified
   if (agentConfig.instructionsFile) {
-    logger.debug('Loading instructions from file', {
+    logger.info('[File Load] Loading instructions from file', {
       agentId: agentConfig.id,
       file: agentConfig.instructionsFile,
     });
 
     try {
       result.instructions = await loadConfigFile(agentConfig.instructionsFile, 'text');
+      logger.info('[File Load] Instructions file loaded', {
+        agentId: agentConfig.id,
+        file: agentConfig.instructionsFile,
+        bytesLoaded: result.instructions.length,
+      });
 
       // Validate instructions
       const validation = validateInstructions(result.instructions);
       if (!validation.valid) {
+        logger.error('[File Load] Instructions validation failed', new Error(validation.error), {
+          agentId: agentConfig.id,
+          file: agentConfig.instructionsFile,
+          error: validation.error,
+        });
         throw new Error(`Invalid instructions: ${validation.error}`);
       }
 
-      logger.debug('Loaded and validated instructions', {
+      logger.info('[File Load] Instructions validated successfully', {
         agentId: agentConfig.id,
         length: result.instructions.length,
       });
     } catch (error) {
-      logger.error('Failed to load instructions file', error, {
+      logger.error('[File Load] Failed to load instructions file', error, {
         agentId: agentConfig.id,
         file: agentConfig.instructionsFile,
+        errorName: error.name,
+        errorMessage: error.message,
+        errorStack: error.stack,
       });
       throw error;
     }
   } else if (agentConfig.instructions) {
+    logger.info('[File Load] Using inline instructions', {
+      agentId: agentConfig.id,
+      length: agentConfig.instructions.length,
+    });
     result.instructions = agentConfig.instructions;
 
     // Validate inline instructions
     const validation = validateInstructions(result.instructions);
     if (!validation.valid) {
+      logger.error('[File Load] Inline instructions validation failed', new Error(validation.error), {
+        agentId: agentConfig.id,
+        error: validation.error,
+      });
       throw new Error(`Invalid inline instructions: ${validation.error}`);
     }
   }
 
   // Process icon file if specified
   if (agentConfig.iconFile) {
-    logger.debug('Processing icon file', {
+    logger.info('[File Load] Processing icon file', {
       agentId: agentConfig.id,
       file: agentConfig.iconFile,
     });
@@ -81,24 +102,37 @@ async function loadAgentFileContent(agentConfig) {
     try {
       result.avatar = await processIconFile(agentConfig.iconFile, agentConfig.id);
 
-      logger.debug('Processed icon file', {
+      logger.info('[File Load] Icon file processed successfully', {
         agentId: agentConfig.id,
+        file: agentConfig.iconFile,
         avatar: result.avatar,
       });
     } catch (error) {
-      logger.error('Failed to process icon file', error, {
+      logger.error('[File Load] Failed to process icon file', error, {
         agentId: agentConfig.id,
         file: agentConfig.iconFile,
+        errorName: error.name,
+        errorMessage: error.message,
+        errorStack: error.stack,
       });
       throw error;
     }
   } else if (agentConfig.icon) {
     // Use inline icon data
+    logger.info('[File Load] Using inline icon data', {
+      agentId: agentConfig.id,
+    });
     result.avatar = {
       filepath: agentConfig.icon,
       source: 'inline',
     };
   }
+
+  logger.info('[File Load] All file content loaded successfully', {
+    agentId: agentConfig.id,
+    hasInstructions: !!result.instructions,
+    hasAvatar: !!result.avatar,
+  });
 
   return result;
 }
@@ -383,19 +417,45 @@ async function syncAgent(agentConfig, defaultObjectId) {
 
   try {
     // Validate agent configuration
+    logger.info('[STEP 1/6] Validating agent configuration', { agentId: agentConfig.id });
     const validation = validateAgentConfig(agentConfig);
     if (!validation.valid) {
+      logger.error('[STEP 1/6] Validation failed', new Error('Validation failed'), {
+        agentId: agentConfig.id,
+        errors: validation.errors,
+      });
       throw new Error(`Invalid agent configuration: ${validation.errors.join(', ')}`);
     }
+    logger.info('[STEP 1/6] Validation passed', { agentId: agentConfig.id });
 
     // Load file-based content
+    logger.info('[STEP 2/6] Loading file-based content', {
+      agentId: agentConfig.id,
+      hasInstructionsFile: !!agentConfig.instructionsFile,
+      hasIconFile: !!agentConfig.iconFile,
+    });
     const { instructions, avatar } = await loadAgentFileContent(agentConfig);
+    logger.info('[STEP 2/6] File content loaded successfully', {
+      agentId: agentConfig.id,
+      hasInstructions: !!instructions,
+      hasAvatar: !!avatar,
+    });
 
     // Calculate config hash for change detection
+    logger.info('[STEP 3/6] Calculating configuration hash', { agentId: agentConfig.id });
     const newConfigHash = calculateAgentConfigHash(agentConfig, instructions, avatar);
+    logger.info('[STEP 3/6] Configuration hash calculated', {
+      agentId: agentConfig.id,
+      hashPreview: newConfigHash.substring(0, 8),
+    });
 
     // Check if agent already exists
+    logger.info('[STEP 4/6] Checking if agent exists in database', { agentId: agentConfig.id });
     const existingAgent = await getAgent({ id: agentConfig.id, author: defaultObjectId });
+    logger.info('[STEP 4/6] Agent existence check complete', {
+      agentId: agentConfig.id,
+      exists: !!existingAgent,
+    });
 
     let agent;
     let isNew = false;
@@ -406,36 +466,49 @@ async function syncAgent(agentConfig, defaultObjectId) {
       const existingHash = lastVersion?.version_metadata?.configHash;
 
       if (existingHash && hashesEqual(existingHash, newConfigHash)) {
-        logger.info('Agent configuration unchanged, skipping update', {
+        logger.info('[STEP 4/6] Agent configuration unchanged, skipping update', {
           agentId: agentConfig.id,
         });
         agent = existingAgent;
       } else {
-        logger.info('Agent configuration changed, updating', {
+        logger.info('[STEP 4/6] Agent configuration changed, updating', {
           agentId: agentConfig.id,
           existingHash: existingHash?.substring(0, 8),
           newHash: newConfigHash.substring(0, 8),
         });
         agent = await updateDefaultAgent(existingAgent, agentConfig, instructions, avatar);
+        logger.info('[STEP 4/6] Agent updated successfully', { agentId: agentConfig.id });
       }
     } else {
-      logger.info('Agent does not exist, creating new', {
+      logger.info('[STEP 4/6] Agent does not exist, creating new', {
         agentId: agentConfig.id,
       });
       agent = await createDefaultAgent(agentConfig, instructions, avatar, defaultObjectId);
+      logger.info('[STEP 4/6] Agent created successfully', {
+        agentId: agentConfig.id,
+        _id: agent._id,
+      });
       isNew = true;
     }
 
     // Sync actions
+    logger.info('[STEP 5/6] Synchronizing agent actions', {
+      agentId: agentConfig.id,
+      actionCount: agentConfig.actions?.length || 0,
+    });
     const actions = await syncActions(agentConfig.id, agentConfig.actions, defaultObjectId);
+    logger.info('[STEP 5/6] Actions synchronized successfully', {
+      agentId: agentConfig.id,
+      syncedActionCount: actions.length,
+    });
 
     // Update agent's actions array with action IDs
     if (actions.length > 0) {
-      const actionIds = actions.map((action) => action.action_id);
-      logger.debug('Updating agent with action IDs', {
+      logger.info('[STEP 6/6] Updating agent with action IDs', {
         agentId: agent.id,
-        actionIds,
+        actionCount: actions.length,
       });
+      const actionIds = actions.map((action) => action.action_id);
 
       // Update the agent with action IDs
       agent = await updateAgent(
@@ -443,10 +516,13 @@ async function syncAgent(agentConfig, defaultObjectId) {
         { actions: actionIds },
         defaultObjectId,
       );
+      logger.info('[STEP 6/6] Agent updated with action IDs', { agentId: agent.id });
+    } else {
+      logger.info('[STEP 6/6] No actions to update', { agentId: agent.id });
     }
 
     const duration = Date.now() - startTime;
-    logger.info('Agent sync completed', {
+    logger.info('✅ Agent sync completed successfully', {
       agentId: agent.id,
       name: agent.name,
       isNew,
@@ -457,9 +533,13 @@ async function syncAgent(agentConfig, defaultObjectId) {
     return agent;
   } catch (error) {
     const duration = Date.now() - startTime;
-    logger.error('Agent sync failed', error, {
-      agentId: agentConfig.id,
+    logger.error('❌ Agent sync failed', error, {
+      agentId: agentConfig?.id || 'unknown',
+      agentName: agentConfig?.name || 'unknown',
       duration: `${duration}ms`,
+      errorName: error.name,
+      errorMessage: error.message,
+      errorStack: error.stack,
     });
     throw error;
   }
@@ -580,19 +660,34 @@ async function syncDefaultAgents(config) {
     });
 
     // Sync each agent
+    logger.info('Starting agent sync', { agentCount: defaultAgents.length });
     const syncedAgents = [];
-    for (const agentConfig of defaultAgents) {
+    for (let i = 0; i < defaultAgents.length; i++) {
+      const agentConfig = defaultAgents[i];
+      logger.info(`Syncing agent ${i + 1}/${defaultAgents.length}`, {
+        agentId: agentConfig.id,
+        agentName: agentConfig.name,
+      });
       try {
         const agent = await syncAgent(agentConfig, defaultObjectId);
         syncedAgents.push(agent);
         results.syncedCount++;
-      } catch (error) {
-        logger.error('Failed to sync agent', error, {
+        logger.info(`✅ Agent ${i + 1}/${defaultAgents.length} synced successfully`, {
           agentId: agentConfig.id,
+        });
+      } catch (error) {
+        logger.error(`❌ Failed to sync agent ${i + 1}/${defaultAgents.length}`, error, {
+          agentId: agentConfig.id,
+          agentName: agentConfig.name,
+          errorName: error.name,
+          errorMessage: error.message,
+          errorStack: error.stack,
         });
         results.errors.push({
           agentId: agentConfig.id,
+          agentName: agentConfig.name,
           error: error.message,
+          stack: error.stack,
         });
         results.success = false;
         // Continue with other agents
@@ -600,9 +695,11 @@ async function syncDefaultAgents(config) {
     }
 
     // Cleanup removed agents
+    logger.info('Starting cleanup of removed agents');
     const configuredAgentIds = defaultAgents.map((a) => a.id);
     const removedCount = await cleanupRemovedAgents(configuredAgentIds, defaultObjectId);
     results.removedCount = removedCount;
+    logger.info('Cleanup completed', { removedCount });
 
     const syncDuration = Date.now() - syncStart;
     logger.info('=== Default Agents Synchronization Completed ===', {
