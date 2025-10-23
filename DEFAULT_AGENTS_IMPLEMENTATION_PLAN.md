@@ -77,8 +77,8 @@ This document outlines the implementation plan for adding default agents and act
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │         Default Agents Synchronization Service             │
-│  - Create/update agents with DEFAULT_ACTIONS_OBJECT_ID     │
-│  - Create/update actions with DEFAULT_ACTIONS_OBJECT_ID    │
+│  - Create/update agents with DEFAULT_OBJECT_ID     │
+│  - Create/update actions with DEFAULT_OBJECT_ID    │
 │  - Handle file uploads (icons)                             │
 │  - Version control (hash-based change detection)           │
 │  - Cleanup removed default agents/actions                  │
@@ -90,13 +90,13 @@ This document outlines the implementation plan for adding default agents and act
 │                      MongoDB Database                       │
 │  ┌───────────────────────────────────────────────────────┐ │
 │  │ Agent Collection                                      │ │
-│  │  - author: DEFAULT_ACTIONS_OBJECT_ID (for defaults)   │ │
+│  │  - author: DEFAULT_OBJECT_ID (for defaults)   │ │
 │  │  - Normal agent fields                                │ │
 │  │  - versions array for change tracking                 │ │
 │  └───────────────────────────────────────────────────────┘ │
 │  ┌───────────────────────────────────────────────────────┐ │
 │  │ Action Collection                                     │ │
-│  │  - user: DEFAULT_ACTIONS_OBJECT_ID (for defaults)     │ │
+│  │  - user: DEFAULT_OBJECT_ID (for defaults)     │ │
 │  │  - Normal action fields                               │ │
 │  └───────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
@@ -130,7 +130,7 @@ This document outlines the implementation plan for adding default agents and act
 
 **Tasks**:
 
-1. Add `DEFAULT_ACTIONS_OBJECT_ID` to `.env.example`
+1. Add `DEFAULT_OBJECT_ID` to `.env.example`
    - Default value: `000000000000000000000000`
    - Documentation comment explaining its purpose
 
@@ -244,7 +244,7 @@ This document outlines the implementation plan for adding default agents and act
    ```
 
 2. Implement agent synchronization logic
-   - Query for existing default agents (author = DEFAULT_ACTIONS_OBJECT_ID)
+   - Query for existing default agents (author = DEFAULT_OBJECT_ID)
    - Compare configurations using hash
    - Create new agents if not exists
    - Update agents if hash differs
@@ -252,7 +252,7 @@ This document outlines the implementation plan for adding default agents and act
    - Upload icons to storage
 
 3. Implement action synchronization logic
-   - Query for existing default actions (user = DEFAULT_ACTIONS_OBJECT_ID)
+   - Query for existing default actions (user = DEFAULT_OBJECT_ID)
    - Load spec files
    - Create/update actions
    - Associate with agents
@@ -277,8 +277,8 @@ This document outlines the implementation plan for adding default agents and act
 - `api/server/services/DefaultAgents/index.js`
 
 **Acceptance Criteria**:
-- Agents are created with DEFAULT_ACTIONS_OBJECT_ID as author
-- Actions are created with DEFAULT_ACTIONS_OBJECT_ID as user
+- Agents are created with DEFAULT_OBJECT_ID as author
+- Actions are created with DEFAULT_OBJECT_ID as user
 - Updates are idempotent (running multiple times produces same result)
 - Removed agents/actions are cleaned up
 - All operations are logged in detail
@@ -328,7 +328,7 @@ This document outlines the implementation plan for adding default agents and act
 
 1. Modify `api/server/routes/agents/agents.js`
    - Add query parameter for default-only agents
-   - Filter agents by author = DEFAULT_ACTIONS_OBJECT_ID when required
+   - Filter agents by author = DEFAULT_OBJECT_ID when required
    - Ensure default agents are always included in results
 
 2. Create middleware `api/server/middleware/checkDefaultAgentAccess.js`
@@ -340,7 +340,7 @@ This document outlines the implementation plan for adding default agents and act
     * @param {Function} next - Next middleware
     */
    async function checkDefaultAgentAccess(req, res, next) {
-     // Check if agent is default (author = DEFAULT_ACTIONS_OBJECT_ID)
+     // Check if agent is default (author = DEFAULT_OBJECT_ID)
      // If yes, allow access regardless of permissions
      // If no, proceed with normal permission checks
    }
@@ -620,7 +620,7 @@ This document outlines the implementation plan for adding default agents and act
    # Object ID used to identify default agents and actions in the database
    # This should be a MongoDB ObjectId format that will never be generated naturally
    # Default: 000000000000000000000000
-   DEFAULT_ACTIONS_OBJECT_ID=000000000000000000000000
+   DEFAULT_OBJECT_ID=000000000000000000000000
 
    # API keys for default agent actions
    CUSTOMER_SUPPORT_API_KEY=your-api-key-here
@@ -677,25 +677,25 @@ This document outlines the implementation plan for adding default agents and act
 The existing schemas already support the default agents functionality:
 
 **Agent Schema** (`packages/data-schemas/src/schema/agent.ts`):
-- `author` field: Will be set to `DEFAULT_ACTIONS_OBJECT_ID` for default agents
+- `author` field: Will be set to `DEFAULT_OBJECT_ID` for default agents
 - All other fields remain the same
 - Existing version control mechanism can track updates
 
 **Action Schema** (`packages/data-schemas/src/schema/action.ts`):
-- `user` field: Will be set to `DEFAULT_ACTIONS_OBJECT_ID` for default actions
+- `user` field: Will be set to `DEFAULT_OBJECT_ID` for default actions
 - All other fields remain the same
 
 ### Query Patterns
 
 **Find Default Agents**:
 ```javascript
-const defaultObjectId = process.env.DEFAULT_ACTIONS_OBJECT_ID || '000000000000000000000000';
+const defaultObjectId = process.env.DEFAULT_OBJECT_ID || '000000000000000000000000';
 const defaultAgents = await Agent.find({ author: defaultObjectId });
 ```
 
 **Find All Agents for User (including defaults)**:
 ```javascript
-const defaultObjectId = process.env.DEFAULT_ACTIONS_OBJECT_ID || '000000000000000000000000';
+const defaultObjectId = process.env.DEFAULT_OBJECT_ID || '000000000000000000000000';
 const agents = await Agent.find({
   $or: [
     { author: userId },
@@ -706,7 +706,7 @@ const agents = await Agent.find({
 
 **Check if Agent is Default**:
 ```javascript
-const defaultObjectId = process.env.DEFAULT_ACTIONS_OBJECT_ID || '000000000000000000000000';
+const defaultObjectId = process.env.DEFAULT_OBJECT_ID || '000000000000000000000000';
 const isDefaultAgent = agent.author.toString() === defaultObjectId;
 ```
 
@@ -794,7 +794,7 @@ interface DefaultActionConfig {
 
 ```bash
 # Default agents object ID
-DEFAULT_ACTIONS_OBJECT_ID=000000000000000000000000
+DEFAULT_OBJECT_ID=000000000000000000000000
 
 # Action API keys (referenced in librechat.yaml)
 CUSTOMER_SUPPORT_API_KEY=xxx
@@ -811,7 +811,7 @@ SALES_CRM_CLIENT_SECRET=xxx
 #### Phase 1: Configuration Setup (2-3 hours)
 
 1. **Update `.env.example`**
-   - Add DEFAULT_ACTIONS_OBJECT_ID with default value
+   - Add DEFAULT_OBJECT_ID with default value
    - Add documentation comments
    - Add example action API keys
 
@@ -858,7 +858,7 @@ SALES_CRM_CLIENT_SECRET=xxx
    ```javascript
    async function syncAgent(agentConfig) {
      const logger = createLogger('AgentSync');
-     const defaultObjectId = process.env.DEFAULT_ACTIONS_OBJECT_ID;
+     const defaultObjectId = process.env.DEFAULT_OBJECT_ID;
 
      logger.debug(`Syncing agent: ${agentConfig.id}`);
 
@@ -909,7 +909,7 @@ SALES_CRM_CLIENT_SECRET=xxx
    ```javascript
    async function syncActions(agentId, actionsConfig) {
      const logger = createLogger('ActionSync');
-     const defaultObjectId = process.env.DEFAULT_ACTIONS_OBJECT_ID;
+     const defaultObjectId = process.env.DEFAULT_OBJECT_ID;
 
      for (const actionConfig of actionsConfig) {
        logger.debug(`Syncing action for agent ${agentId}: ${actionConfig.domain}`);
@@ -957,7 +957,7 @@ SALES_CRM_CLIENT_SECRET=xxx
    ```javascript
    async function cleanupRemovedAgents(configuredAgentIds) {
      const logger = createLogger('AgentCleanup');
-     const defaultObjectId = process.env.DEFAULT_ACTIONS_OBJECT_ID;
+     const defaultObjectId = process.env.DEFAULT_OBJECT_ID;
 
      // Find all default agents
      const allDefaultAgents = await Agent.find({ author: defaultObjectId });
@@ -1021,7 +1021,7 @@ SALES_CRM_CLIENT_SECRET=xxx
    const { logger } = require('~/config');
 
    async function checkDefaultAgentAccess(req, res, next) {
-     const defaultObjectId = process.env.DEFAULT_ACTIONS_OBJECT_ID || '000000000000000000000000';
+     const defaultObjectId = process.env.DEFAULT_OBJECT_ID || '000000000000000000000000';
      const { agent_id } = req.params;
 
      try {
@@ -1060,7 +1060,7 @@ SALES_CRM_CLIENT_SECRET=xxx
    router.get('/', async (req, res) => {
      const { defaultOnly } = req.query;
      const userId = req.user.id;
-     const defaultObjectId = process.env.DEFAULT_ACTIONS_OBJECT_ID;
+     const defaultObjectId = process.env.DEFAULT_OBJECT_ID;
 
      let query;
      if (defaultOnly === 'true') {
@@ -1651,7 +1651,7 @@ docs/
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `DEFAULT_ACTIONS_OBJECT_ID` | `000000000000000000000000` | Object ID for default agents/actions |
+| `DEFAULT_OBJECT_ID` | `000000000000000000000000` | Object ID for default agents/actions |
 | `DEBUG_LOGGING` | `false` | Enable detailed debug logging |
 | `{ACTION}_API_KEY` | - | API keys for default agent actions |
 
