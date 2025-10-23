@@ -262,6 +262,53 @@ export const defaultAgentCapabilities = [
   AgentCapabilities.ocr,
 ];
 
+// Schema for default action authentication
+export const defaultActionAuthSchema = z.object({
+  type: z.enum(['service_http', 'oauth', 'none']),
+  api_key: z.string().optional(),
+  custom_auth_header: z.string().optional(),
+  client_url: z.string().optional(),
+  authorization_url: z.string().optional(),
+  scope: z.string().optional(),
+  oauth_client_id: z.string().optional(),
+  oauth_client_secret: z.string().optional(),
+  token_exchange_method: z.enum(['default_post', 'basic_auth_header']).optional(),
+});
+
+export type TDefaultActionAuth = z.infer<typeof defaultActionAuthSchema>;
+
+// Schema for default action configuration
+export const defaultActionConfigSchema = z.object({
+  domain: z.string(),
+  spec: z.string().optional(),
+  specFile: z.string().optional(),
+  auth: defaultActionAuthSchema.optional(),
+  privacy_policy_url: z.string().optional(),
+});
+
+export type TDefaultActionConfig = z.infer<typeof defaultActionConfigSchema>;
+
+// Schema for default agent configuration
+export const defaultAgentConfigSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  instructions: z.string().optional(),
+  instructionsFile: z.string().optional(),
+  icon: z.string().optional(),
+  iconFile: z.string().optional(),
+  provider: z.string(),
+  model: z.string(),
+  category: z.string().optional(),
+  model_parameters: z.record(z.any()).optional(),
+  recursion_limit: z.number().optional(),
+  tools: z.array(z.string()).optional(),
+  actions: z.array(defaultActionConfigSchema).optional(),
+  tool_resources: z.record(z.any()).optional(),
+});
+
+export type TDefaultAgentConfig = z.infer<typeof defaultAgentConfigSchema>;
+
 export const agentsEndpointSchema = baseEndpointSchema
   .merge(
     z.object({
@@ -277,6 +324,8 @@ export const agentsEndpointSchema = baseEndpointSchema
         .array(z.nativeEnum(AgentCapabilities))
         .optional()
         .default(defaultAgentCapabilities),
+      /* default agents */
+      defaultAgents: z.array(defaultAgentConfigSchema).optional(),
     }),
   )
   .default({
