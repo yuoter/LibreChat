@@ -62,14 +62,18 @@ async function getEndpointsConfig(req) {
     };
   }
   if (mergedConfig[EModelEndpoint.agents] && appConfig?.endpoints?.[EModelEndpoint.agents]) {
-    const { disableBuilder, capabilities, allowedProviders, ..._rest } =
+    const { disableBuilder, capabilities, allowedProviders, defaultAgents, ..._rest } =
       appConfig.endpoints[EModelEndpoint.agents];
+
+    // Determine if only default agents should be shown
+    const defaultAgentsOnly = defaultAgents && Array.isArray(defaultAgents) && defaultAgents.length > 0;
 
     mergedConfig[EModelEndpoint.agents] = {
       ...mergedConfig[EModelEndpoint.agents],
       allowedProviders,
       disableBuilder,
       capabilities,
+      defaultAgentsOnly,
     };
   }
 

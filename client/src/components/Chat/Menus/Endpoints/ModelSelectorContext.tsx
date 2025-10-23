@@ -65,6 +65,9 @@ export function ModelSelectorProvider({ children, startupConfig }: ModelSelector
       return specs;
     }
 
+    // Check if only default agents should be shown
+    const defaultAgentsOnly = endpointsConfig?.[EModelEndpoint.agents]?.defaultAgentsOnly;
+
     /**
      * Filter modelSpecs to only include agents the user has access to.
      * Use agentsMap which already contains permission-filtered agents (consistent with other components).
@@ -73,10 +76,16 @@ export function ModelSelectorProvider({ children, startupConfig }: ModelSelector
       if (spec.preset?.endpoint === EModelEndpoint.agents && spec.preset?.agent_id) {
         return spec.preset.agent_id in agentsMap;
       }
-      /** Keep non-agent modelSpecs */
+
+      // If defaultAgentsOnly is enabled, hide non-agent modelSpecs
+      if (defaultAgentsOnly) {
+        return false;
+      }
+
+      /** Keep non-agent modelSpecs (only if defaultAgentsOnly is not enabled) */
       return true;
     });
-  }, [startupConfig, agentsMap]);
+  }, [startupConfig, agentsMap, endpointsConfig]);
 
   const permissionLevel = useAgentDefaultPermissionLevel();
   const { data: agents = null } = useListAgentsQuery(
