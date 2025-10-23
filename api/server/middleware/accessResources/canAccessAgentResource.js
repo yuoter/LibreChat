@@ -66,7 +66,7 @@ const canAccessAgentResource = (options) => {
       if (!agent) {
         return res.status(404).json({
           error: 'Not Found',
-          message: 'Agent not found',
+          message: 'agent not found',
         });
       }
 
