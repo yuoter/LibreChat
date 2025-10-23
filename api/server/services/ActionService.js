@@ -1,6 +1,4 @@
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const axios = require('axios');
 const { nanoid } = require('nanoid');
 const { tool } = require('@langchain/core/tools');
 const { logger } = require('@librechat/data-schemas');
@@ -21,10 +19,9 @@ const {
   actionDelimiter,
   isImageVisionTool,
   actionDomainSeparator,
-  extractEnvVariable,
 } = require('librechat-data-provider');
 const { findToken, updateToken, createToken } = require('~/models');
-const { getActions, deleteActions, updateAction } = require('~/models/Action');
+const { getActions, deleteActions } = require('~/models/Action');
 const { deleteAssistant } = require('~/models/Assistant');
 const { getFlowStateManager } = require('~/config');
 const { getLogStores } = require('~/cache');
@@ -32,11 +29,6 @@ const { getLogStores } = require('~/cache');
 const JWT_SECRET = process.env.JWT_SECRET;
 const toolNameRegex = /^[a-zA-Z0-9_-]+$/;
 const replaceSeparatorRegex = new RegExp(actionDomainSeparator, 'g');
-
-// In-memory cache for default actions
-let defaultActionsCache = null;
-let defaultActionsCacheTimestamp = 0;
-const DEFAULT_ACTIONS_CACHE_TTL = Time.TEN_MINUTES; // Cache for 10 minutes
 
 /**
  * Validates tool name against regex pattern and updates if necessary.
@@ -446,248 +438,6 @@ const deleteAssistantActions = async ({ req, assistant_id }) => {
   }
 };
 
-/**
- * Fetches OpenAPI specification from a URL.
- *
- * @param {string} url - The URL to fetch the OpenAPI spec from.
- * @returns {Promise<string>} The OpenAPI spec as a string.
- */
-async function fetchOpenAPISpec(url) {
-  try {
-    const response = await axios.get(url, {
-      timeout: 10000,
-      headers: {
-        Accept: 'application/json, application/yaml, text/yaml',
-      },
-    });
-    return typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
-  } catch (error) {
-    logger.error(`Failed to fetch OpenAPI spec from ${url}`, error);
-    throw new Error(`Failed to fetch OpenAPI spec from ${url}: ${error.message}`);
-  }
-}
-
-/**
- * Loads default actions from the application configuration.
- *
- * @param {Object} appConfig - The application configuration object.
- * @returns {Promise<Array<Object>>} Array of default action configurations.
- */
-async function loadDefaultActionsFromConfig(appConfig) {
-  const defaultActions = appConfig?.actions?.defaults;
-  if (!defaultActions || !Array.isArray(defaultActions)) {
-    return [];
-  }
-
-  const processedActions = [];
-
-  for (const actionConfig of defaultActions) {
-    try {
-      // Validate required fields
-      if (!actionConfig.name || !actionConfig.domain) {
-        logger.warn('Skipping default action: missing name or domain', { actionConfig });
-        continue;
-      }
-
-      // Get OpenAPI spec from URL or inline
-      let rawSpec;
-      if (actionConfig.openapi_spec_url) {
-        rawSpec = await fetchOpenAPISpec(actionConfig.openapi_spec_url);
-      } else if (actionConfig.openapi_spec) {
-        rawSpec = typeof actionConfig.openapi_spec === 'string'
-          ? actionConfig.openapi_spec
-          : JSON.stringify(actionConfig.openapi_spec);
-      } else {
-        logger.warn('Skipping default action: missing openapi_spec or openapi_spec_url', {
-          name: actionConfig.name,
-        });
-        continue;
-      }
-
-      // Process auth configuration
-      const auth = actionConfig.auth || { type: 'none' };
-      let apiKey;
-      let oauthClientId;
-      let oauthClientSecret;
-
-      if (auth.type === 'service_http' && auth.api_key) {
-        // Extract environment variable if present
-        apiKey = extractEnvVariable(auth.api_key);
-      } else if (auth.type === 'oauth') {
-        if (auth.oauth_client_id) {
-          oauthClientId = extractEnvVariable(auth.oauth_client_id);
-        }
-        if (auth.oauth_client_secret) {
-          oauthClientSecret = extractEnvVariable(auth.oauth_client_secret);
-        }
-      }
-
-      // Build action object
-      const action = {
-        name: actionConfig.name,
-        domain: actionConfig.domain,
-        description: actionConfig.description,
-        metadata: {
-          domain: actionConfig.domain,
-          raw_spec: rawSpec,
-          auth: {
-            type: auth.type || 'none',
-            authorization_type: auth.authorization_type,
-            custom_auth_header: auth.custom_auth_header,
-            authorization_content_type: auth.authorization_content_type,
-            authorization_url: auth.authorization_url,
-            client_url: auth.client_url,
-            scope: auth.scope,
-            token_exchange_method: auth.token_exchange_method || null,
-          },
-          privacy_policy_url: actionConfig.privacy_policy_url,
-        },
-      };
-
-      // Add sensitive fields
-      if (apiKey) {
-        action.metadata.api_key = apiKey;
-      }
-      if (oauthClientId) {
-        action.metadata.oauth_client_id = oauthClientId;
-      }
-      if (oauthClientSecret) {
-        action.metadata.oauth_client_secret = oauthClientSecret;
-      }
-
-      processedActions.push(action);
-    } catch (error) {
-      logger.error(`Error processing default action ${actionConfig.name}`, error);
-    }
-  }
-
-  return processedActions;
-}
-
-/**
- * Generates a hash of the default actions configuration for change detection.
- *
- * @param {Array<Object>} defaultActions - Array of default action configurations.
- * @returns {string} SHA256 hash of the configuration.
- */
-function hashDefaultActionsConfig(defaultActions) {
-  if (!defaultActions || defaultActions.length === 0) {
-    return '';
-  }
-  const configString = JSON.stringify(defaultActions);
-  return crypto.createHash('sha256').update(configString).digest('hex');
-}
-
-/**
- * Seeds or updates default actions in the database.
- * Uses a special system user ID for default actions.
- *
- * @param {Object} appConfig - The application configuration object.
- * @returns {Promise<void>}
- */
-async function seedDefaultActions(appConfig) {
-  const SYSTEM_USER_ID = 'system_default_actions';
-
-  try {
-    const defaultActions = await loadDefaultActionsFromConfig(appConfig);
-
-    if (defaultActions.length === 0) {
-      logger.info('No default actions configured in librechat.yaml');
-      return;
-    }
-
-    // Calculate hash of current configuration
-    const currentHash = hashDefaultActionsConfig(appConfig?.actions?.defaults);
-
-    // Check if we have a stored hash from previous seed
-    const hashCache = getLogStores(CacheKeys.CONFIG_STORE);
-    const storedHash = await hashCache.get('default_actions_hash');
-
-    if (storedHash === currentHash) {
-      logger.info('Default actions configuration unchanged, skipping seed');
-      return;
-    }
-
-    logger.info(`Seeding ${defaultActions.length} default actions into database...`);
-
-    for (const action of defaultActions) {
-      try {
-        // Encrypt sensitive metadata
-        const encryptedMetadata = await encryptMetadata(action.metadata);
-
-        // Create or update the action
-        const actionData = {
-          user: SYSTEM_USER_ID,
-          action_id: `default_${action.domain}`,
-          type: 'default_action',
-          metadata: encryptedMetadata,
-        };
-
-        await updateAction(
-          { action_id: actionData.action_id, user: SYSTEM_USER_ID },
-          actionData,
-        );
-
-        logger.info(`Seeded default action: ${action.name} (${action.domain})`);
-      } catch (error) {
-        logger.error(`Failed to seed default action ${action.name}`, error);
-      }
-    }
-
-    // Store the hash for future comparisons
-    await hashCache.set('default_actions_hash', currentHash);
-
-    // Clear the in-memory caches to force reload
-    clearDefaultActionsCache();
-
-    // Also clear the processed action cache in ToolService
-    // Require here to avoid circular dependency
-    const { clearProcessedActionCache } = require('./ToolService');
-    clearProcessedActionCache();
-
-    logger.info('Default actions seeding completed');
-  } catch (error) {
-    logger.error('Error seeding default actions', error);
-  }
-}
-
-/**
- * Clears the in-memory cache for default actions.
- */
-function clearDefaultActionsCache() {
-  defaultActionsCache = null;
-  defaultActionsCacheTimestamp = 0;
-  logger.debug('Default actions cache cleared');
-}
-
-/**
- * Loads default actions from the database with caching.
- * Default actions are identified by the system user ID.
- * Results are cached in memory for 10 minutes to avoid repeated DB queries and OpenAPI parsing.
- *
- * @returns {Promise<Action[] | null>} A promise that resolves to an array of default actions.
- */
-async function loadDefaultActionSets() {
-  const SYSTEM_USER_ID = 'system_default_actions';
-
-  // Check if cache is still valid
-  const now = Date.now();
-  if (defaultActionsCache && now - defaultActionsCacheTimestamp < DEFAULT_ACTIONS_CACHE_TTL) {
-    logger.debug('Returning cached default actions');
-    return defaultActionsCache;
-  }
-
-  // Load from database
-  logger.debug('Loading default actions from database');
-  const actions = await getActions({ user: SYSTEM_USER_ID }, true);
-
-  // Update cache
-  defaultActionsCache = actions;
-  defaultActionsCacheTimestamp = now;
-
-  return actions;
-}
-
 module.exports = {
   deleteAssistantActions,
   validateAndUpdateTool,
@@ -696,7 +446,4 @@ module.exports = {
   decryptMetadata,
   loadActionSets,
   domainParser,
-  seedDefaultActions,
-  loadDefaultActionSets,
-  clearDefaultActionsCache,
 };

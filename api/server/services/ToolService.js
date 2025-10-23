@@ -9,7 +9,6 @@ const {
 } = require('@librechat/api');
 const {
   Tools,
-  Time,
   Constants,
   ErrorTypes,
   ContentTypes,
@@ -26,9 +25,7 @@ const {
   createActionTool,
   decryptMetadata,
   loadActionSets,
-  loadDefaultActionSets,
   domainParser,
-  clearDefaultActionsCache,
 } = require('./ActionService');
 const { processFileURL, uploadImageBuffer } = require('~/server/services/Files/process');
 const { getEndpointsConfig, getCachedTools } = require('~/server/services/Config');
@@ -38,11 +35,6 @@ const { recordUsage } = require('~/server/services/Threads');
 const { loadTools } = require('~/app/clients/tools/util');
 const { redactMessage } = require('~/config/parsers');
 const { findPluginAuthsByKeys } = require('~/models');
-
-// In-memory cache for processed action sets (parsed OpenAPI specs)
-// Key: domain, Value: { action, requestBuilders, functionSignatures, zodSchemas, encrypted, timestamp }
-const processedActionCache = new Map();
-const PROCESSED_ACTION_CACHE_TTL = Time.TEN_MINUTES; // Cache for 10 minutes
 /**
  * Processes the required actions by calling the appropriate tools and returning the outputs.
  * @param {OpenAIClient} client - OpenAI or StreamRunManager Client.
@@ -220,17 +212,10 @@ async function processRequiredActions(client, requiredActions) {
 
       // Load all action sets once if not already loaded
       if (!actionSets.length) {
-        // Load assistant-specific actions
-        const assistantActionSets =
+        actionSets =
           (await loadActionSets({
             assistant_id: client.req.body.assistant_id,
           })) ?? [];
-
-        // Load default actions from system
-        const defaultActionSets = (await loadDefaultActionSets()) ?? [];
-
-        // Merge default actions with assistant-specific actions
-        actionSets = [...defaultActionSets, ...assistantActionSets];
 
         // Process all action sets once
         // Map domains to their processed action sets
@@ -509,16 +494,7 @@ async function loadAgentTools({ req, res, agent, signal, tool_resources, openAIA
     };
   }
 
-  // Load agent-specific actions
-  const agentActionSets = (await loadActionSets({ agent_id: agent.id })) ?? [];
-
-  // Load default actions from system
-  const defaultActionSets = (await loadDefaultActionSets()) ?? [];
-
-  // Merge default actions with agent-specific actions
-  // Agent-specific actions take precedence over defaults (same domain will be overridden)
-  const actionSets = [...defaultActionSets, ...agentActionSets];
-
+  const actionSets = (await loadActionSets({ agent_id: agent.id })) ?? [];
   if (actionSets.length === 0) {
     if (_agentTools.length > 0 && agentTools.length === 0) {
       logger.warn(`No tools found for the specified tool calls: ${_agentTools.join(', ')}`);
@@ -531,22 +507,12 @@ async function loadAgentTools({ req, res, agent, signal, tool_resources, openAIA
   }
 
   // Process each action set once (validate spec, decrypt metadata)
-  // Use cache to avoid re-parsing OpenAPI specs
   const processedActionSets = new Map();
   const domainMap = new Map();
-  const now = Date.now();
 
   for (const action of actionSets) {
     const domain = await domainParser(action.metadata.domain, true);
     domainMap.set(domain, action);
-
-    // Check if we have a valid cached entry for this domain
-    const cachedEntry = processedActionCache.get(domain);
-    if (cachedEntry && now - cachedEntry.timestamp < PROCESSED_ACTION_CACHE_TTL) {
-      logger.debug(`Using cached processed action for domain: ${domain}`);
-      processedActionSets.set(domain, cachedEntry);
-      continue;
-    }
 
     // Check if domain is allowed (do this once per action set)
     const isDomainAllowed = await isActionDomainAllowed(
@@ -578,19 +544,13 @@ async function loadAgentTools({ req, res, agent, signal, tool_resources, openAIA
       true,
     );
 
-    const processedData = {
+    processedActionSets.set(domain, {
       action: decryptedAction,
       requestBuilders,
       functionSignatures,
       zodSchemas,
       encrypted,
-      timestamp: now,
-    };
-
-    // Store in both local and module-level cache
-    processedActionSets.set(domain, processedData);
-    processedActionCache.set(domain, processedData);
-    logger.debug(`Cached processed action for domain: ${domain}`);
+    });
   }
 
   // Now map tools to the processed action sets
@@ -657,18 +617,8 @@ async function loadAgentTools({ req, res, agent, signal, tool_resources, openAIA
   };
 }
 
-/**
- * Clears the processed action cache.
- * Should be called when actions are updated in the database.
- */
-function clearProcessedActionCache() {
-  processedActionCache.clear();
-  logger.debug('Processed action cache cleared');
-}
-
 module.exports = {
   getToolkitKey,
   loadAgentTools,
   processRequiredActions,
-  clearProcessedActionCache,
 };

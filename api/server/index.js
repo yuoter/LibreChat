@@ -59,11 +59,6 @@ const startServer = async () => {
   const appConfig = await getAppConfig();
   initializeFileStorage(appConfig);
   await performStartupChecks(appConfig);
-
-  // Seed default actions from configuration
-  const { seedDefaultActions } = require('./services/ActionService');
-  await seedDefaultActions(appConfig);
-
   await updateInterfacePermissions(appConfig);
 
   const indexPath = path.join(appConfig.paths.dist, 'index.html');
