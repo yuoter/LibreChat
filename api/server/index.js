@@ -61,6 +61,40 @@ const startServer = async () => {
   await performStartupChecks(appConfig);
   await updateInterfacePermissions(appConfig);
 
+  // Synchronize default agents from librechat.yaml
+  logger.info('Synchronizing default agents from configuration...');
+  const syncStart = Date.now();
+  try {
+    const { syncDefaultAgents } = require('./services/DefaultAgents');
+    const syncResult = await syncDefaultAgents(appConfig);
+    const syncDuration = Date.now() - syncStart;
+
+    if (syncResult.success) {
+      logger.info('Default agents synchronized successfully', {
+        syncedCount: syncResult.syncedCount,
+        removedCount: syncResult.removedCount,
+        duration: `${syncDuration}ms`,
+      });
+    } else {
+      logger.warn('Default agents sync completed with errors', {
+        syncedCount: syncResult.syncedCount,
+        removedCount: syncResult.removedCount,
+        errorCount: syncResult.errors.length,
+        errors: syncResult.errors,
+        duration: `${syncDuration}ms`,
+      });
+    }
+  } catch (error) {
+    const syncDuration = Date.now() - syncStart;
+    logger.error('Failed to sync default agents', {
+      error: error.message,
+      stack: error.stack,
+      duration: `${syncDuration}ms`,
+    });
+    // Continue server startup even if sync fails
+    logger.warn('Continuing server startup despite default agents sync failure');
+  }
+
   const indexPath = path.join(appConfig.paths.dist, 'index.html');
   let indexHTML = fs.readFileSync(indexPath, 'utf8');
 

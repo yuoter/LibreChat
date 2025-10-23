@@ -13,7 +13,7 @@
 | Phase 1: Configuration Setup | ✅ Complete | ~30min | Added DEFAULT_ACTIONS_OBJECT_ID, schemas, YAML examples |
 | Phase 2: File Loading | ✅ Complete | ~45min | File utilities for specs, instructions, icons |
 | Phase 3: Sync Service | ✅ Complete | ~1h | Database synchronization logic |
-| Phase 4: Server Integration | 🔄 Not Started | - | Hook sync into server startup |
+| Phase 4: Server Integration | ✅ Complete | ~15min | Hook sync into server startup |
 | Phase 5: API Modifications | 🔄 Not Started | - | Endpoints and middleware |
 | Phase 6: Frontend Changes | 🔄 Not Started | - | UI components updates |
 | Phase 7: Token Verification | 🔄 Not Started | - | Verify token tracking works |
@@ -128,6 +128,35 @@
 - Secure: Uses existing encryption for action metadata
 - Efficient: Hash-based comparison avoids unnecessary database writes
 
+### 2025-10-23 - Phase 4 Complete
+
+**Completed:**
+- ✅ Integrated sync into server startup (api/server/index.js):
+  - Runs after database connection established
+  - Runs after configuration loaded
+  - Runs before server starts accepting requests
+  - Comprehensive error handling
+  - Duration tracking and logging
+  - Graceful degradation (continues if sync fails)
+  - Logs success, warnings, and errors appropriately
+
+**Integration Point:**
+- Added sync call after `performStartupChecks(appConfig)`
+- Before health endpoint and route setup
+- Ensures agents are ready before first request
+
+**Error Handling:**
+- Try-catch around entire sync operation
+- Logs errors with stack traces
+- Continues server startup even if sync fails
+- Provides detailed status reporting
+
+**Logging:**
+- Info: Sync start, success, and completion
+- Warn: Sync with errors, continuing despite failure
+- Error: Complete sync failure with details
+- Duration tracking for performance monitoring
+
 ---
 
 ## Deviations from Plan
@@ -165,6 +194,7 @@
 - `.env.example` - Added DEFAULT_ACTIONS_OBJECT_ID configuration
 - `packages/data-provider/src/config.ts` - Added default agents schemas
 - `librechat.example.yaml` - Added default agents examples
+- `api/server/index.js` - Added default agents sync to server startup
 
 ---
 
