@@ -93,13 +93,38 @@ export default function useSideNavLinks({
       const agentsConfig = endpointsConfig[EModelEndpoint.agents];
       const agentsAdminObjectId = agentsConfig.agentsAdminObjectId;
 
+      console.log('[useSideNavLinks] Checking Agent Builder panel visibility:', {
+        currentUserId: user?.id || 'not authenticated',
+        agentsAdminObjectId: agentsAdminObjectId || 'not set',
+        hasAccessToAgents,
+        hasAccessToCreateAgents,
+        disableBuilder: agentsConfig.disableBuilder,
+      });
+
       // If agentsAdminObjectId is set, only show Agent Builder to that specific user
       // Otherwise, show to all users with CREATE permission
       const canAccessBuilder = agentsAdminObjectId
         ? user?.id === agentsAdminObjectId
         : hasAccessToCreateAgents;
 
+      if (agentsAdminObjectId) {
+        const isAdminUser = user?.id === agentsAdminObjectId;
+        console.log(
+          `[useSideNavLinks] Agent Builder restricted mode: ${isAdminUser ? 'USER IS ADMIN' : 'USER IS NOT ADMIN'}`,
+          {
+            matches: isAdminUser,
+            currentUserId: user?.id,
+            requiredUserId: agentsAdminObjectId,
+          },
+        );
+      } else {
+        console.log('[useSideNavLinks] Agent Builder open mode: checking CREATE permission', {
+          hasCreatePermission: hasAccessToCreateAgents,
+        });
+      }
+
       if (canAccessBuilder) {
+        console.log('[useSideNavLinks] ✓ Agent Builder panel will be shown to this user');
         links.push({
           title: 'com_sidepanel_agent_builder',
           label: '',
@@ -107,6 +132,8 @@ export default function useSideNavLinks({
           id: EModelEndpoint.agents,
           Component: AgentPanelSwitch,
         });
+      } else {
+        console.log('[useSideNavLinks] ✗ Agent Builder panel will be hidden from this user');
       }
     }
 

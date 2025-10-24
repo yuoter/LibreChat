@@ -345,6 +345,8 @@ export type TConfig = {
   disableBuilder?: boolean;
   retrievalModels?: string[];
   capabilities?: string[];
+  allowedProviders?: string[];
+  agentsAdminObjectId?: string;
   customParams?: {
     defaultParamsEndpoint?: string;
     paramDefinitions?: SettingDefinition[];

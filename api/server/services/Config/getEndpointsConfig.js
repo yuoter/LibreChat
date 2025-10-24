@@ -1,4 +1,5 @@
 const { loadCustomEndpointsConfig } = require('@librechat/api');
+const { logger } = require('@librechat/data-schemas');
 const {
   CacheKeys,
   EModelEndpoint,
@@ -62,14 +63,35 @@ async function getEndpointsConfig(req) {
     };
   }
   if (mergedConfig[EModelEndpoint.agents] && appConfig?.endpoints?.[EModelEndpoint.agents]) {
-    const { disableBuilder, capabilities, allowedProviders, ..._rest } =
+    const { disableBuilder, capabilities, allowedProviders, agentsAdminObjectId, ..._rest } =
       appConfig.endpoints[EModelEndpoint.agents];
+
+    logger.info(
+      '[getEndpointsConfig] Processing agents endpoint configuration:',
+      JSON.stringify({
+        disableBuilder,
+        agentsAdminObjectId: agentsAdminObjectId || 'not set',
+        hasAllowedProviders: !!allowedProviders,
+        capabilitiesCount: capabilities?.length || 0,
+      }),
+    );
+
+    if (agentsAdminObjectId) {
+      logger.info(
+        `[getEndpointsConfig] Agent Builder restricted to user with ObjectId: ${agentsAdminObjectId}`,
+      );
+    } else {
+      logger.info(
+        '[getEndpointsConfig] Agent Builder available to all users with CREATE permission',
+      );
+    }
 
     mergedConfig[EModelEndpoint.agents] = {
       ...mergedConfig[EModelEndpoint.agents],
       allowedProviders,
       disableBuilder,
       capabilities,
+      agentsAdminObjectId,
     };
   }
 
