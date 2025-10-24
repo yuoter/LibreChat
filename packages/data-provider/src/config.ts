@@ -268,6 +268,7 @@ export const agentsEndpointSchema = baseEndpointSchema
       /* agents specific */
       recursionLimit: z.number().optional(),
       disableBuilder: z.boolean().optional().default(false),
+      agentsAdminObjectId: z.string().optional(),
       maxRecursionLimit: z.number().optional(),
       maxCitations: z.number().min(1).max(50).optional().default(30),
       maxCitationsPerFile: z.number().min(1).max(10).optional().default(7),

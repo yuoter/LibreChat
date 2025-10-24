@@ -20,7 +20,7 @@ import Parameters from '~/components/SidePanel/Parameters/Panel';
 import FilesPanel from '~/components/SidePanel/Files/Panel';
 import MCPPanel from '~/components/SidePanel/MCP/MCPPanel';
 import { useGetStartupConfig } from '~/data-provider';
-import { useHasAccess } from '~/hooks';
+import { useHasAccess, useAuthContext } from '~/hooks';
 
 export default function useSideNavLinks({
   hidePanel,
@@ -62,6 +62,7 @@ export default function useSideNavLinks({
     permission: Permissions.CREATE,
   });
   const { data: startupConfig } = useGetStartupConfig();
+  const { user } = useAuthContext();
 
   const Links = useMemo(() => {
     const links: NavLink[] = [];
@@ -87,16 +88,26 @@ export default function useSideNavLinks({
     if (
       endpointsConfig?.[EModelEndpoint.agents] &&
       hasAccessToAgents &&
-      hasAccessToCreateAgents &&
       endpointsConfig[EModelEndpoint.agents].disableBuilder !== true
     ) {
-      links.push({
-        title: 'com_sidepanel_agent_builder',
-        label: '',
-        icon: Blocks,
-        id: EModelEndpoint.agents,
-        Component: AgentPanelSwitch,
-      });
+      const agentsConfig = endpointsConfig[EModelEndpoint.agents];
+      const agentsAdminObjectId = agentsConfig.agentsAdminObjectId;
+
+      // If agentsAdminObjectId is set, only show Agent Builder to that specific user
+      // Otherwise, show to all users with CREATE permission
+      const canAccessBuilder = agentsAdminObjectId
+        ? user?.id === agentsAdminObjectId
+        : hasAccessToCreateAgents;
+
+      if (canAccessBuilder) {
+        links.push({
+          title: 'com_sidepanel_agent_builder',
+          label: '',
+          icon: Blocks,
+          id: EModelEndpoint.agents,
+          Component: AgentPanelSwitch,
+        });
+      }
     }
 
     if (hasAccessToPrompts) {
@@ -195,6 +206,7 @@ export default function useSideNavLinks({
     hasAccessToCreateAgents,
     hidePanel,
     startupConfig,
+    user,
   ]);
 
   return Links;
