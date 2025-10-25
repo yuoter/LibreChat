@@ -10,12 +10,10 @@ import React, {
 } from 'react';
 import { Badge } from '@librechat/client';
 import { useRecoilValue, useRecoilCallback } from 'recoil';
-import { getConfigDefaults } from 'librechat-data-provider';
 import type { LucideIcon } from 'lucide-react';
 import CodeInterpreter from './CodeInterpreter';
 import { BadgeRowProvider } from '~/Providers';
 import ToolsDropdown from './ToolsDropdown';
-import { useGetStartupConfig } from '~/data-provider';
 import type { BadgeItem } from '~/common';
 import { useChatBadges } from '~/hooks';
 import ToolDialogs from './ToolDialogs';
@@ -24,8 +22,6 @@ import Artifacts from './Artifacts';
 import MCPSelect from './MCPSelect';
 import WebSearch from './WebSearch';
 import store from '~/store';
-
-const defaultInterface = getConfigDefaults().interface;
 
 interface BadgeRowProps {
   showEphemeralBadges?: boolean;
@@ -151,12 +147,6 @@ function BadgeRow({
   onToggle,
   isInChat,
 }: BadgeRowProps) {
-  const { data: startupConfig } = useGetStartupConfig();
-  const interfaceConfig = useMemo(
-    () => startupConfig?.interface ?? defaultInterface,
-    [startupConfig],
-  );
-
   const [orderedBadges, setOrderedBadges] = useState<BadgeItem[]>([]);
   const [dragState, dispatch] = useReducer(dragReducer, {
     draggedBadge: null,
@@ -332,7 +322,7 @@ function BadgeRow({
   return (
     <BadgeRowProvider conversationId={conversationId} isSubmitting={isSubmitting}>
       <div ref={containerRef} className="relative flex flex-wrap items-center gap-2">
-        {showEphemeralBadges === true && interfaceConfig.tools === true && <ToolsDropdown />}
+        {showEphemeralBadges === true && <ToolsDropdown />}
         {tempBadges.map((badge, index) => (
           <React.Fragment key={badge.id}>
             {dragState.draggedBadge && dragState.insertIndex === index && ghostBadge && (
