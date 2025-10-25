@@ -80,22 +80,54 @@ interface:
 
       By using the Website, you acknowledge that you have read these Terms of Service and agree to be bound by them.
 
+  # Enable/disable various UI elements and features (default: true for most)
   endpointsMenu: true
   modelSelect: true
   parameters: true
   sidePanel: true
   presets: true
+  
+  # Enable/disable Prompts feature in sidebar (default: true)
   prompts: true
+  
+  # Enable/disable Bookmarks/Conversation Tags feature (default: true)
   bookmarks: true
+  
+  # Enable/disable Multi-Conversation feature (default: true)
   multiConvo: true
+  
+  # Enable/disable Agents feature (default: true)
   agents: true
+  
+  # Enable/disable Temporary Chat feature in header (default: true)
+  # When enabled, users can toggle temporary mode for conversations
+  temporaryChat: true
+  
+  # Enable/disable Tools dropdown in chat input (default: true)
+  # Controls visibility of the tools configuration button for web search, code interpreter, etc.
+  tools: true
+  
+  # Enable/disable Attach Files panel in sidebar (default: true)
+  # Controls visibility of the file attachment panel in the side navigation
+  attachFiles: true
+  
+  # Enable/disable Forking feature below messages (default: true)
+  # Controls visibility of the fork button that allows branching conversations
+  forking: true
+  
+  # People Picker permissions (default: true for all)
   peoplePicker:
     users: true
     groups: true
     roles: true
+    
+  # Marketplace settings (default: false)
   marketplace:
       use: false
+      
+  # Enable/disable File Citations in agents (default: true)
   fileCitations: true
+  
   # Temporary chat retention period in hours (default: 720, min: 1, max: 8760)
   # temporaryChatRetention: 1
 
