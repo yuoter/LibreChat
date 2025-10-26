@@ -239,9 +239,10 @@ endpoints:
   #   # (optional) Assistant Capabilities available to all users. Omit the ones you wish to exclude. Defaults to list below.
   #   capabilities: ["code_interpreter", "retrieval", "actions", "tools", "image_vision"]
   # agents:
-  #   # (optional) Set endpoint to agents by default
+  #   # (optional) Set endpoint to agents
   #   enabled: true
-  #   # (optional) Default to a particular agent
+  #   # (optional) Default to a particular agent to users with role USER, but never to users with role ADMIN 
+  #   # When set, users with USER role will automatically start with this agent
   #   defaultAgent: "agent-uuid-here"
   #   # (optional) Default recursion depth for agents, defaults to 25
   #   recursionLimit: 50
