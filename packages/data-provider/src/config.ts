@@ -273,7 +273,7 @@ export const agentsEndpointSchema = baseEndpointSchema
       maxCitationsPerFile: z.number().min(1).max(10).optional().default(7),
       minRelevanceScore: z.number().min(0.0).max(1.0).optional().default(0.45),
       allowedProviders: z.array(z.union([z.string(), eModelEndpointSchema])).optional(),
-      defaultAgent: z.string().optional(),
+      defaultAgent: z.string().nullable().default(null),
       capabilities: z
         .array(z.nativeEnum(AgentCapabilities))
         .optional()
