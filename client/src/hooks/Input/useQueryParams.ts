@@ -139,14 +139,14 @@ export default function useQueryParams({
    * These must be inside React hook to work
    */
   const { agentsConfig } = useGetAgentsConfig();
-  const defaultAgent = agentsConfig?.defaultAgent ?? '';
+  const runtimeDefaultAgent = agentsConfig?.defaultAgent ?? '';
   const { user } = useAuthContext();
   
   // Log required values
   logger.info(
     'useQueryParams.ts',
-    'defaultAgent value (checked in useQueryParams.ts file):',
-    defaultAgent ?? 'null/undefined',
+    'runtimeDefaultAgent value (checked in useQueryParams.ts file):',
+    runtimeDefaultAgent ?? '',
   );
   
   logger.info(
@@ -190,8 +190,8 @@ export default function useQueryParams({
 
   //new definition
   /**
-   * If user role is ADMIN, sets urlAgentId to agent_id from url, if agent_id is not present in url, sets it to null.
-   * If user role USER, sets urlAgentId to defaultAgent, but if defaultAgent is equal to null - 
+   * If user role is ADMIN, sets urlAgentId to agent_id from url, if agent_id is not present in url, sets it to empty string.
+   * If user role USER, sets urlAgentId to runtimeDefaultAgent, but if runtimeDefaultAgent is falsy - 
    * sets urlAgentId to agent_id from url, if agent_id is not present in url, sets it to null.
    * If role is other than roles than ADMIN and USER, use the same logic to define urlAgentId as for a user with a role USER. 
    */
@@ -199,8 +199,8 @@ export default function useQueryParams({
     user?.role === SystemRoles.ADMIN
       ? (searchParams.get('agent_id') || '')
       : user?.role === SystemRoles.USER
-      ? (defaultAgent ?? (searchParams.get('agent_id') || ''))
-      : (defaultAgent ?? (searchParams.get('agent_id') || ''));
+      ? (runtimeDefaultAgent || (searchParams.get('agent_id') || ''))
+      : (runtimeDefaultAgent || (searchParams.get('agent_id') || ''));
   
   const { data: urlAgent } = useGetAgentByIdQuery(urlAgentId);
 
