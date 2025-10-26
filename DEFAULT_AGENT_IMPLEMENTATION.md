@@ -18,7 +18,7 @@ Default agent id will be set in librechat.yaml
 
 1. [Background & Requirements](#background--requirements)
 2. [Existing Architecture Patterns](#existing-architecture-patterns)
-3. [Solution: Agents Endpoint Configuration](#solution-agents-endpoint-configuration-recommended)
+3. [Solution: Agents Endpoint Configuration](#solution-agents-endpoint-configuration)
 
 
 ---
