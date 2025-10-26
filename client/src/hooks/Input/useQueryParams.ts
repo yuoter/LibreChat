@@ -25,55 +25,10 @@ import store from '~/store';
 
 
 /**
- * Check how defaultAgent is imported,  
- * and values of user.role and Systems.USER and Systems.ADMIN.
+ * Imports for defaultAgent and detecting user role (USER or ADMIN)
  */
-
-import { defaultAgent, SystemRoles } from 'librechat-data-provider';
-const { user } = useAuthContext();
-
-// Log required values
-logger.info(
-  'useQueryParams.ts',
-  'defaultAgent value (checked in useQueryParams.ts file):',
-  defaultAgent ?? 'null/undefined',
-);
-
-logger.info(
-  'useQueryParams.ts',
-  'user?.role value (checked in useQueryParams.ts file):',
-  user?.role,
-);
-
-logger.info(
-  'useQueryParams.ts',
-  'Systems.ADMIN value (checked in useQueryParams.ts file):',
-  SystemRoles.ADMIN,
-);
-
-logger.info(
-  'useQueryParams.ts',
-  'Systems.USER value (checked in useQueryParams.ts file):',
-  SystemRoles.USER,
-);
-
-// Role-specific logs
-if (user?.role === SystemRoles.ADMIN) {
-  logger.info(
-    'useQueryParams.ts',
-    'user?.role is equal to Systems.ADMIN, checked in useQueryParams.ts file.',
-    { userRole: user?.role, SystemsADMIN: SystemRoles.ADMIN },
-  );
-}
-
-if (user?.role === SystemRoles.USER) {
-  logger.info(
-    'useQueryParams.ts',
-    'user?.role is equal to Systems.USER, checked in useQueryParams.ts file.',
-    { userRole: user?.role, SystemsUSER: SystemRoles.USER },
-  );
-}
-
+import { useGetAgentsConfig } from '~/hooks';
+import { SystemRoles } from 'librechat-data-provider';
 
 
 /**
@@ -178,7 +133,58 @@ export default function useQueryParams({
   const queryClient = useQueryClient();
   const { conversation, newConversation } = useChatContext();
 
+    /**
+   * Check how defaultAgent is imported,  
+   * and values of user.role and Systems.USER and Systems.ADMIN.
+   * These must be inside React hook to work
+   */
+  const { agentsConfig } = useGetAgentsConfig();
+  const defaultAgent = agentsConfig?.defaultAgent ?? '';
+  const { user } = useAuthContext();
+  
+  // Log required values
+  logger.info(
+    'useQueryParams.ts',
+    'defaultAgent value (checked in useQueryParams.ts file):',
+    defaultAgent ?? 'null/undefined',
+  );
+  
+  logger.info(
+    'useQueryParams.ts',
+    'user?.role value (checked in useQueryParams.ts file):',
+    user?.role,
+  );
+  
+  logger.info(
+    'useQueryParams.ts',
+    'Systems.ADMIN value (checked in useQueryParams.ts file):',
+    SystemRoles.ADMIN,
+  );
+  
+  logger.info(
+    'useQueryParams.ts',
+    'Systems.USER value (checked in useQueryParams.ts file):',
+    SystemRoles.USER,
+  );
+  
+  // Role-specific logs
+  if (user?.role === SystemRoles.ADMIN) {
+    logger.info(
+      'useQueryParams.ts',
+      'user?.role is equal to Systems.ADMIN, checked in useQueryParams.ts file.',
+      { userRole: user?.role, SystemsADMIN: SystemRoles.ADMIN },
+    );
+  }
+  
+  if (user?.role === SystemRoles.USER) {
+    logger.info(
+      'useQueryParams.ts',
+      'user?.role is equal to Systems.USER, checked in useQueryParams.ts file.',
+      { userRole: user?.role, SystemsUSER: SystemRoles.USER },
+    );
+  }
 
+  
   //old definition:
   //const urlAgentId = searchParams.get('agent_id') || '';
 
