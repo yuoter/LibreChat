@@ -8,6 +8,7 @@ import {
   isParamEndpoint,
   LocalStorageKeys,
   isAssistantsEndpoint,
+  isAgentsEndpoint,
 } from 'librechat-data-provider';
 import { useRecoilState, useRecoilValue, useSetRecoilState, useRecoilCallback } from 'recoil';
 import type {
@@ -45,6 +46,7 @@ const useNewConvo = (index = 0) => {
   const clearAllLatestMessages = store.useClearLatestMessages(`useNewConvo ${index}`);
   const setSubmission = useSetRecoilState<TSubmission | null>(store.submissionByIndex(index));
   const { data: endpointsConfig = {} as TEndpointsConfig } = useGetEndpointsQuery();
+  const user = useRecoilValue(store.user);
 
   const modelsQuery = useGetModelsQuery();
   const assistantsListMap = useAssistantListMap();
@@ -144,6 +146,37 @@ const useNewConvo = (index = 0) => {
 
           if (currentAssistantId && !isAssistantEndpoint) {
             conversation.assistant_id = undefined;
+          }
+
+          // Handle default agent for USER role only
+          const isAgentEndpoint = isAgentsEndpoint(defaultEndpoint);
+          const currentAgentId = conversation.agent_id ?? '';
+
+          // CRITICAL: Only apply default agent to USER role, never to ADMIN
+          if (!currentAgentId && isAgentEndpoint && user?.role === 'USER') {
+            const agentConfig = endpointsConfig?.agents;
+            if (agentConfig?.defaultAgent) {
+              conversation.agent_id = agentConfig.defaultAgent;
+              logger.debug(
+                `[useNewConvo] Applied default agent ${agentConfig.defaultAgent} for USER role`,
+              );
+            } else {
+              // Fallback to localStorage if no default agent configured
+              conversation.agent_id =
+                localStorage.getItem(
+                  `${LocalStorageKeys.AGENT_ID_PREFIX}${index}${defaultEndpoint}`,
+                ) ?? undefined;
+            }
+          } else if (!currentAgentId && isAgentEndpoint) {
+            // For non-USER roles, use localStorage only
+            conversation.agent_id =
+              localStorage.getItem(
+                `${LocalStorageKeys.AGENT_ID_PREFIX}${index}${defaultEndpoint}`,
+              ) ?? undefined;
+          }
+
+          if (currentAgentId && !isAgentEndpoint) {
+            conversation.agent_id = undefined;
           }
 
           const models = modelsConfig?.[defaultEndpoint] ?? [];
