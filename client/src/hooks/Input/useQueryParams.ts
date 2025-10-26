@@ -185,15 +185,16 @@ export default function useQueryParams({
   //new definition
   /**
    * If user role is ADMIN, sets urlAgentId to agent_id from url, if agent_id is not present in url, sets it to null.
-   * If user role USER, sets urlAgentId to defaultAgent, but if defaultAgent is equal to undefined - 
+   * If user role USER, sets urlAgentId to defaultAgent, but if defaultAgent is equal to null - 
    * sets urlAgentId to agent_id from url, if agent_id is not present in url, sets it to null.
+   * If role is other than roles than ADMIN and USER, use the same logic to define urlAgentId as for a user with a role USER. 
    */
   const urlAgentId =
     user?.role === SystemRoles.ADMIN
       ? (searchParams.get('agent_id') || '')
       : user?.role === SystemRoles.USER
-      ? (typeof defaultAgent !== 'undefined' ? defaultAgent : (searchParams.get('agent_id') || ''))
-      : (searchParams.get('agent_id') || '');
+      ? (defaultAgent ?? (searchParams.get('agent_id') || ''))
+      : (defaultAgent ?? (searchParams.get('agent_id') || ''));
   
   const { data: urlAgent } = useGetAgentByIdQuery(urlAgentId);
 
