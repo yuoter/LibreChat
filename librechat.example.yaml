@@ -241,7 +241,7 @@ endpoints:
   # agents:
   #   # (optional) Set endpoint to agents by default
   #   enabled: true
-  #   # (optional) Default recursion depth for agents, defaults to 25
+  #   # (optional) Default to a particular agent
   #   defaultAgent: "agent-uuid-here"
   #   # (optional) Default recursion depth for agents, defaults to 25
   #   recursionLimit: 50
