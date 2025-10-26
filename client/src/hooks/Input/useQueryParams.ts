@@ -178,7 +178,23 @@ export default function useQueryParams({
   const queryClient = useQueryClient();
   const { conversation, newConversation } = useChatContext();
 
-  const urlAgentId = searchParams.get('agent_id') || '';
+
+  //old definition:
+  //const urlAgentId = searchParams.get('agent_id') || '';
+
+  //new definition
+  /**
+   * If user role is ADMIN, sets urlAgentId to agent_id from url, if agent_id is not present in url, sets it to null.
+   * If user role USER, sets urlAgentId to defaultAgent, but if defaultAgent is equal to undefined - 
+   * sets urlAgentId to agent_id from url, if agent_id is not present in url, sets it to null.
+   */
+  const urlAgentId =
+    user?.role === SystemRoles.ADMIN
+      ? (searchParams.get('agent_id') || '')
+      : user?.role === SystemRoles.USER
+      ? (typeof defaultAgent !== 'undefined' ? defaultAgent : (searchParams.get('agent_id') || ''))
+      : (searchParams.get('agent_id') || '');
+  
   const { data: urlAgent } = useGetAgentByIdQuery(urlAgentId);
 
   /**
