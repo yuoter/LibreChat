@@ -36,7 +36,7 @@ const { user } = useAuthContext();
 logger.info(
   'useQueryParams.ts',
   'defaultAgent value (checked in useQueryParams.ts file):',
-  defaultAgent,
+  defaultAgent ?? 'null/undefined',
 );
 
 logger.info(
