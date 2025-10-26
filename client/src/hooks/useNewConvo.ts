@@ -106,6 +106,20 @@ const useNewConvo = (index = 0) => {
             defaultEndpoint = Object.keys(endpointsConfig ?? {})[0] as EModelEndpoint;
           }
 
+          // CRITICAL: Set endpoint to 'agents' for USER role when defaultAgent is configured
+          logger.log('[useNewConvo] Checking if should override endpoint to agents:', {
+            userRole: user?.role,
+            hasDefaultAgent: !!endpointsConfig?.agents?.defaultAgent,
+            currentEndpoint: defaultEndpoint,
+          });
+
+          if (user?.role === 'USER' && endpointsConfig?.agents?.defaultAgent) {
+            logger.log(
+              `[useNewConvo] ✅ Overriding endpoint from '${defaultEndpoint}' to 'agents' for USER role`,
+            );
+            defaultEndpoint = EModelEndpoint.agents;
+          }
+
           const endpointType = getEndpointField(endpointsConfig, defaultEndpoint, 'type');
           if (!conversation.endpointType && endpointType) {
             conversation.endpointType = endpointType;
@@ -152,31 +166,58 @@ const useNewConvo = (index = 0) => {
           const isAgentEndpoint = isAgentsEndpoint(defaultEndpoint);
           const currentAgentId = conversation.agent_id ?? '';
 
+          logger.log(
+            '[useNewConvo] Default agent check:',
+            {
+              defaultEndpoint,
+              isAgentEndpoint,
+              currentAgentId,
+              userRole: user?.role,
+              hasUser: !!user,
+              endpointsConfig: endpointsConfig?.agents,
+            },
+          );
+
           // CRITICAL: Only apply default agent to USER role, never to ADMIN
           if (!currentAgentId && isAgentEndpoint && user?.role === 'USER') {
             const agentConfig = endpointsConfig?.agents;
+            logger.log('[useNewConvo] Checking agent config for USER role:', {
+              hasAgentConfig: !!agentConfig,
+              defaultAgent: agentConfig?.defaultAgent,
+            });
+
             if (agentConfig?.defaultAgent) {
               conversation.agent_id = agentConfig.defaultAgent;
-              logger.debug(
-                `[useNewConvo] Applied default agent ${agentConfig.defaultAgent} for USER role`,
+              logger.log(
+                `[useNewConvo] ✅ Applied default agent ${agentConfig.defaultAgent} for USER role`,
               );
             } else {
+              logger.log('[useNewConvo] No defaultAgent in config, checking localStorage');
               // Fallback to localStorage if no default agent configured
               conversation.agent_id =
                 localStorage.getItem(
                   `${LocalStorageKeys.AGENT_ID_PREFIX}${index}${defaultEndpoint}`,
                 ) ?? undefined;
+              logger.log('[useNewConvo] Agent from localStorage:', conversation.agent_id);
             }
           } else if (!currentAgentId && isAgentEndpoint) {
+            logger.log(`[useNewConvo] Non-USER role (${user?.role}), using localStorage only`);
             // For non-USER roles, use localStorage only
             conversation.agent_id =
               localStorage.getItem(
                 `${LocalStorageKeys.AGENT_ID_PREFIX}${index}${defaultEndpoint}`,
               ) ?? undefined;
+          } else {
+            logger.log('[useNewConvo] Skipping default agent:', {
+              currentAgentId,
+              isAgentEndpoint,
+              userRole: user?.role,
+            });
           }
 
           if (currentAgentId && !isAgentEndpoint) {
             conversation.agent_id = undefined;
+            logger.log('[useNewConvo] Cleared agent_id because endpoint is not agents');
           }
 
           const models = modelsConfig?.[defaultEndpoint] ?? [];

@@ -1,5 +1,6 @@
 const { loadCustomEndpointsConfig } = require('@librechat/api');
 const {
+  logger,
   CacheKeys,
   EModelEndpoint,
   isAgentsEndpoint,
@@ -65,6 +66,13 @@ async function getEndpointsConfig(req) {
     const { disableBuilder, capabilities, allowedProviders, defaultAgent, ..._rest } =
       appConfig.endpoints[EModelEndpoint.agents];
 
+    logger.info('[getEndpointsConfig] Agents config from appConfig:', {
+      enabled: appConfig.endpoints[EModelEndpoint.agents].enabled,
+      defaultAgent,
+      disableBuilder,
+      capabilities: capabilities?.length,
+    });
+
     mergedConfig[EModelEndpoint.agents] = {
       ...mergedConfig[EModelEndpoint.agents],
       allowedProviders,
@@ -72,6 +80,11 @@ async function getEndpointsConfig(req) {
       capabilities,
       defaultAgent,
     };
+
+    logger.info('[getEndpointsConfig] Merged agents config:', {
+      ...mergedConfig[EModelEndpoint.agents],
+      capabilities: mergedConfig[EModelEndpoint.agents].capabilities?.length,
+    });
   }
 
   if (

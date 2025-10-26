@@ -31,7 +31,26 @@ Default agent id will be set in librechat.yaml
 - Client and server both implement consistent role checking (`userRole === 'USER'`)
 - Middleware properly ordered after `requireJwtAuth` to ensure `req.user` is populated
 - Configuration properly propagated from server to client via endpoints config API
-- No deviations from the original plan
+
+### Bugs Found and Fixed:
+1. **CRITICAL BUG #1** (Fixed in commit e52a213):
+   - **Issue**: Client code only set `agent_id` when endpoint was already 'agents', but never SET the endpoint to 'agents'
+   - **Impact**: Default agent was never applied because endpoint remained on first custom endpoint (e.g., 'DeepInfra')
+   - **Fix**: Added logic to override `defaultEndpoint` to 'agents' when USER role has `defaultAgent` configured
+   - **Location**: `client/src/hooks/useNewConvo.ts:116-121`
+
+2. **CRITICAL BUG #2** (Fixed in commit [current]):
+   - **Issue**: Middleware accessed config from wrong location (`req.app.locals.appConfig` instead of `req.config`)
+   - **Impact**: Server-side middleware NEVER injected default agent because `agentConfig` was always undefined
+   - **Root Cause**: `configMiddleware` attaches config to `req.config`, not `req.app.locals.appConfig`
+   - **Fix**: Changed from `req.app.locals.appConfig?.endpoints?.agents` to `req.config?.endpoints?.agents`
+   - **Location**: `api/server/middleware/injectDefaultAgent.js:51`
+   - **Credit**: Identified by Codex code review
+
+### Logging Added:
+- Server-side config propagation logging (`getEndpointsConfig.js`)
+- Server-side middleware detailed logging (`injectDefaultAgent.js`)
+- Client-side endpoint and agent selection logging (`useNewConvo.ts`)
 
 ### Example Configuration (librechat.yaml):
 ```yaml
