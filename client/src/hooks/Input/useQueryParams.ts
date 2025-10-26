@@ -23,6 +23,59 @@ import { useChatContext, useChatFormContext } from '~/Providers';
 import { useGetAgentByIdQuery } from '~/data-provider';
 import store from '~/store';
 
+
+/**
+ * Check how defaultAgent is imported,  
+ * and values of user.role and Systems.USER and Systems.ADMIN.
+ */
+
+import { defaultAgent, SystemRoles } from 'librechat-data-provider';
+const { user } = useAuthContext();
+
+// Log required values
+logger.info(
+  'useQueryParams.ts',
+  'defaultAgent value (checked in useQueryParams.ts file):',
+  defaultAgent,
+);
+
+logger.info(
+  'useQueryParams.ts',
+  'user?.role value (checked in useQueryParams.ts file):',
+  user?.role,
+);
+
+logger.info(
+  'useQueryParams.ts',
+  'Systems.ADMIN value (checked in useQueryParams.ts file):',
+  SystemRoles.ADMIN,
+);
+
+logger.info(
+  'useQueryParams.ts',
+  'Systems.USER value (checked in useQueryParams.ts file):',
+  SystemRoles.USER,
+);
+
+// Role-specific logs
+if (user?.role === SystemRoles.ADMIN) {
+  logger.info(
+    'useQueryParams.ts',
+    'user?.role is equal to Systems.ADMIN, checked in useQueryParams.ts file.',
+    { userRole: user?.role, SystemsADMIN: SystemRoles.ADMIN },
+  );
+}
+
+if (user?.role === SystemRoles.USER) {
+  logger.info(
+    'useQueryParams.ts',
+    'user?.role is equal to Systems.USER, checked in useQueryParams.ts file.',
+    { userRole: user?.role, SystemsUSER: SystemRoles.USER },
+  );
+}
+
+
+
 /**
  * Parses query parameter values, converting strings to their appropriate types.
  * Handles boolean strings, numbers, and preserves regular strings.
