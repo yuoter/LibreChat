@@ -47,9 +47,9 @@ const injectDefaultAgent = async (req, res, next) => {
         return next();
       }
 
-      // Safe to use optional chaining for config objects that may not be configured
-      const agentConfig = req.app.locals.appConfig?.endpoints?.agents;
-      logger.info('[injectDefaultAgent] Agent config from appConfig:', {
+      // CRITICAL FIX: Use req.config (set by configMiddleware), NOT req.app.locals.appConfig
+      const agentConfig = req.config?.endpoints?.agents;
+      logger.info('[injectDefaultAgent] Agent config from req.config:', {
         exists: !!agentConfig,
         enabled: agentConfig?.enabled,
         defaultAgent: agentConfig?.defaultAgent,
