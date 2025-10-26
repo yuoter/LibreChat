@@ -9,6 +9,7 @@ const {
   buildEndpointOption,
   canAccessAgentFromBody,
 } = require('~/server/middleware');
+const injectDefaultAgent = require('~/server/middleware/injectDefaultAgent');
 const { initializeClient } = require('~/server/services/Endpoints/agents');
 const AgentController = require('~/server/controllers/agents/request');
 const addTitle = require('~/server/services/Endpoints/agents/title');
@@ -16,6 +17,7 @@ const { getRoleByName } = require('~/models/Role');
 
 const router = express.Router();
 
+router.use(injectDefaultAgent);
 router.use(moderateText);
 
 const checkAgentAccess = generateCheckAccess({
