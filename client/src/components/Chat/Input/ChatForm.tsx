@@ -33,6 +33,7 @@ import EditBadges from './EditBadges';
 import BadgeRow from './BadgeRow';
 import Mention from './Mention';
 import store from '~/store';
+import { logger } from '~/utils';
 
 const ChatForm = memo(({ index = 0 }: { index?: number }) => {
   const submitButtonRef = useRef<HTMLButtonElement>(null);
@@ -61,6 +62,8 @@ const ChatForm = memo(({ index = 0 }: { index?: number }) => {
     store.showMentionPopoverFamily(index),
   );
 
+  logger.info(`ChatForm invoked`);
+  
   const { requiresKey } = useRequiresKey();
   const methods = useChatFormContext();
   const {
