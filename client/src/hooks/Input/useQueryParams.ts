@@ -377,7 +377,22 @@ export default function useQueryParams({
     })();
   }, [methods, submitMessage, conversation]);
 
+  //Create refs to hold last-seen values in useeffect
+  const prevRoleRef = useRef<string | undefined>(undefined);
+  const prevUrlAgentIdRef = useRef<string | null | undefined>(undefined);
+
+  
   useEffect(() => {
+    const roleChanged = prevRoleRef.current !== user?.role;
+    const urlAgentChanged = prevUrlAgentIdRef.current !== urlAgentId;
+    
+    if (roleChanged || urlAgentChanged) {
+      attemptsRef.current = 0;
+    }
+    
+    prevRoleRef.current = user?.role;
+    prevUrlAgentIdRef.current = urlAgentId;  
+    
     const processQueryParams = () => {
       const queryParams: Record<string, string> = {};
       searchParams.forEach((value, key) => {
