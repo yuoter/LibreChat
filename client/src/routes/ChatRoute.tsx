@@ -132,7 +132,7 @@ export default function ChatRoute() {
   if (!isAuthenticated) {
     return null;
   }
-
+  logger.info('conversationId in ChatRoute', conversationId);
   // if not a conversation
   if (conversation?.conversationId === Constants.SEARCH) {
     return null;
@@ -143,6 +143,7 @@ export default function ChatRoute() {
   }
   // if conversationId is null
   if (!conversationId) {
+    logger.info('ChatRoute', 'No conversationId provided; skipping ChatView render.');
     return null;
   }
 
