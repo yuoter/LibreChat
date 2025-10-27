@@ -76,7 +76,13 @@ jest.mock('~/utils', () => ({
   })),
   getModelSpecIconURL: jest.fn(() => 'icon-url'),
   removeUnavailableTools: jest.fn((preset) => preset),
-  logger: { log: jest.fn() },
+  logger: {
+    log: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
   getInitialTheme: jest.fn(() => 'light'),
   applyFontSize: jest.fn(),
 }));
@@ -106,6 +112,11 @@ jest.mock('~/data-provider', () => ({
     error: null,
   })),
   useListAgentsQuery: jest.fn(() => ({
+    data: null,
+    isLoading: false,
+    error: null,
+  })),
+  useGetEndpointsQuery: jest.fn(() => ({
     data: null,
     isLoading: false,
     error: null,
