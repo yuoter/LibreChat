@@ -110,6 +110,11 @@ jest.mock('~/data-provider', () => ({
     isLoading: false,
     error: null,
   })),
+  useGetEndpointsQuery: jest.fn(() => ({
+    data: null,
+    isLoading: false,
+    error: null,
+  })),
 }));
 
 // Mock global window.history
