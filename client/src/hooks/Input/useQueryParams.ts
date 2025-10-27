@@ -25,6 +25,13 @@ import store from '~/store';
 
 
 /**
+ * Imports for defaultAgent and detecting user role (USER or ADMIN)
+ */
+import { useGetAgentsConfig } from '~/hooks';
+import { SystemRoles } from 'librechat-data-provider';
+
+
+/**
  * Parses query parameter values, converting strings to their appropriate types.
  * Handles boolean strings, numbers, and preserves regular strings.
  */
@@ -46,7 +53,11 @@ const parseQueryValue = (value: string) => {
  * Extracts valid settings based on tQueryParamsSchema and handles special endpoint cases
  * for assistants and agents.
  */
-const processValidSettings = (queryParams: Record<string, string>) => {
+const processValidSettings = (
+  queryParams: Record<string, string>,
+  urlAgentId: string | null | undefined,
+) => {
+  logger.info(`processValidSettings function is invoked`);
   const validSettings = {} as TPreset;
 
   Object.entries(queryParams).forEach(([key, value]) => {
@@ -76,6 +87,20 @@ const processValidSettings = (queryParams: Record<string, string>) => {
   ) {
     validSettings.endpoint = EModelEndpoint.agents;
   }
+  
+  //if default agent is present and endpoint is not yet set to agent, set endpoint to agents. I added
+  //Even if the user didn't specify anything in the URL, if we (the app) know there's a default agent for this user, force the endpoint to agents
+  //and then set validSetting to default agent
+  logger.info(`inside processValidSettings finding if set endpoints to agents`);
+  logger.info(
+    'urlAgentId',
+    urlAgentId,
+  );
+  if (urlAgentId && !isAgentsEndpoint(validSettings.endpoint)) {
+    validSettings.endpoint = EModelEndpoint.agents;
+    validSettings.agent_id = urlAgentId;
+  }
+  
 
   return validSettings;
 };
@@ -105,6 +130,7 @@ export default function useQueryParams({
 }: {
   textAreaRef: React.RefObject<HTMLTextAreaElement>;
 }) {
+  logger.info(`useQueryParams function invoked`);
   const maxAttempts = 50;
   const attemptsRef = useRef(0);
   const MAX_SETTINGS_WAIT_MS = 3000;
@@ -126,7 +152,75 @@ export default function useQueryParams({
   const queryClient = useQueryClient();
   const { conversation, newConversation } = useChatContext();
 
-  const urlAgentId = searchParams.get('agent_id') || '';
+    /**
+   * Check how defaultAgent is imported,  
+   * and values of user.role and Systems.USER and Systems.ADMIN.
+   * These must be inside React hook to work
+   */
+  const { agentsConfig } = useGetAgentsConfig();
+  const runtimeDefaultAgent = agentsConfig?.defaultAgent ?? '';
+  const { user } = useAuthContext();
+  
+  // Log required values
+  logger.info(
+    'useQueryParams.ts',
+    'runtimeDefaultAgent value (checked in useQueryParams.ts file):',
+    runtimeDefaultAgent ?? '',
+  );
+  
+  logger.info(
+    'useQueryParams.ts',
+    'user?.role value (checked in useQueryParams.ts file):',
+    user?.role,
+  );
+  
+  logger.info(
+    'useQueryParams.ts',
+    'Systems.ADMIN value (checked in useQueryParams.ts file):',
+    SystemRoles.ADMIN,
+  );
+  
+  logger.info(
+    'useQueryParams.ts',
+    'Systems.USER value (checked in useQueryParams.ts file):',
+    SystemRoles.USER,
+  );
+  
+  // Role-specific logs
+  if (user?.role === SystemRoles.ADMIN) {
+    logger.info(
+      'useQueryParams.ts',
+      'user?.role is equal to Systems.ADMIN, checked in useQueryParams.ts file.',
+      { userRole: user?.role, SystemsADMIN: SystemRoles.ADMIN },
+    );
+  }
+  
+  if (user?.role === SystemRoles.USER) {
+    logger.info(
+      'useQueryParams.ts',
+      'user?.role is equal to Systems.USER, checked in useQueryParams.ts file.',
+      { userRole: user?.role, SystemsUSER: SystemRoles.USER },
+    );
+  }
+
+  
+  //old definition:
+  //const urlAgentId = searchParams.get('agent_id') || '';
+
+  //new definition
+  /**
+   * If user role is ADMIN, sets urlAgentId to agent_id from url, if agent_id is not present in url, sets it to empty string.
+   * If user role USER, sets urlAgentId to runtimeDefaultAgent, but if runtimeDefaultAgent is falsy - 
+   * sets urlAgentId to agent_id from url, if agent_id is not present in url, sets it to null.
+   * If role is other than roles than ADMIN and USER, use the same logic to define urlAgentId as for a user with a role USER. 
+   */
+  const urlAgentId =
+    user?.role === SystemRoles.ADMIN
+      ? (searchParams.get('agent_id') || '')
+      : user?.role === SystemRoles.USER
+      ? (runtimeDefaultAgent || (searchParams.get('agent_id') || ''))
+      : (runtimeDefaultAgent || (searchParams.get('agent_id') || ''));
+  
   const { data: urlAgent } = useGetAgentByIdQuery(urlAgentId);
 
   /**
@@ -283,7 +377,22 @@ export default function useQueryParams({
     })();
   }, [methods, submitMessage, conversation]);
 
+  //Create refs to hold last-seen values in useeffect
+  const prevRoleRef = useRef<string | undefined>(undefined);
+  const prevUrlAgentIdRef = useRef<string | null | undefined>(undefined);
+
+  
   useEffect(() => {
+    const roleChanged = prevRoleRef.current !== user?.role;
+    const urlAgentChanged = prevUrlAgentIdRef.current !== urlAgentId;
+    
+    if (roleChanged || urlAgentChanged) {
+      attemptsRef.current = 0;
+    }
+    
+    prevRoleRef.current = user?.role;
+    prevUrlAgentIdRef.current = urlAgentId;  
+    
     const processQueryParams = () => {
       const queryParams: Record<string, string> = {};
       searchParams.forEach((value, key) => {
@@ -296,7 +405,7 @@ export default function useQueryParams({
       delete queryParams.prompt;
       delete queryParams.q;
       delete queryParams.submit;
-      const validSettings = processValidSettings(queryParams);
+      const validSettings = processValidSettings(queryParams, urlAgentId);
 
       return { decodedPrompt, validSettings, shouldAutoSubmit };
     };
@@ -319,6 +428,28 @@ export default function useQueryParams({
       if (!startupConfig) {
         return;
       }
+
+      /**
+       * NEW GUARD (Option B core):
+       *
+       * If the user is NOT an admin, and we still don't have a usable urlAgentId,
+       * bail out of this tick. Do NOT finalize, do NOT mark processedRef.current = true.
+       *
+       * This prevents us from "locking in" a conversation before we've actually
+       * resolved the correct default agent for this user.
+       *
+       * Notes:
+       * - user?.role could be undefined early during auth load; in that case we
+       *   should treat them like non-admin (i.e. block) because we don't want
+       *   to finalize without correct role/agent info.
+       * - urlAgentId can be '' (empty string), which is falsy. We wait until it
+       *   becomes a real id or at least a meaningful value.
+       */
+      const isAdmin = user?.role === SystemRoles.ADMIN;
+      if (!isAdmin && !urlAgentId) {
+        // Don't advance state yet. Just wait for next interval tick.
+        return;
+      }      
 
       const { decodedPrompt, validSettings, shouldAutoSubmit } = processQueryParams();
 
@@ -413,6 +544,8 @@ export default function useQueryParams({
     setSearchParams,
     queryClient,
     processSubmission,
+    user?.role,          // <-- add this
+    urlAgentId,    // <-- and this
   ]);
 
   useEffect(() => {
