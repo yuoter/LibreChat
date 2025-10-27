@@ -90,6 +90,7 @@ const processValidSettings = (
   
   //if default agent is present and endpoint is not yet set to agent, set endpoint to agents. I added
   //Even if the user didn't specify anything in the URL, if we (the app) know there's a default agent for this user, force the endpoint to agents
+  //and then set validSetting to default agent
   logger.info(`inside processValidSettings finding if set endpoints to agents`);
   logger.info(
     'urlAgentId',
@@ -97,6 +98,7 @@ const processValidSettings = (
   );
   if (urlAgentId && !isAgentsEndpoint(validSettings.endpoint)) {
     validSettings.endpoint = EModelEndpoint.agents;
+    validSettings.agent_id = urlAgentId;
   }
   
 
