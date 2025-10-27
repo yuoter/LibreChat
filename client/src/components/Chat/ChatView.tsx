@@ -33,6 +33,7 @@ function LoadingSpinner() {
 function ChatView({ index = 0 }: { index?: number }) {
   logger.info('ChatView invoked');
   const { conversationId } = useParams();
+  logger.info('conversatioId in ChatView', conversationId);
   const rootSubmission = useRecoilValue(store.submissionByIndex(index));
   const addedSubmission = useRecoilValue(store.submissionByIndex(index + 1));
   const centerFormOnLanding = useRecoilValue(store.centerFormOnLanding);
