@@ -18,6 +18,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { cn } from '~/utils';
 import store from '~/store';
+import { logger } from '~/utils';
 
 function LoadingSpinner() {
   return (
@@ -30,6 +31,7 @@ function LoadingSpinner() {
 }
 
 function ChatView({ index = 0 }: { index?: number }) {
+  logger.info('ChatView invoked');
   const { conversationId } = useParams();
   const rootSubmission = useRecoilValue(store.submissionByIndex(index));
   const addedSubmission = useRecoilValue(store.submissionByIndex(index + 1));
