@@ -53,7 +53,11 @@ const parseQueryValue = (value: string) => {
  * Extracts valid settings based on tQueryParamsSchema and handles special endpoint cases
  * for assistants and agents.
  */
-const processValidSettings = (queryParams: Record<string, string>) => {
+const processValidSettings = (
+  queryParams: Record<string, string>,
+  urlAgentId: string | null | undefined,
+) => {
+  logger.info(`processValidSetting function is invoked`);
   const validSettings = {} as TPreset;
 
   Object.entries(queryParams).forEach(([key, value]) => {
@@ -83,6 +87,18 @@ const processValidSettings = (queryParams: Record<string, string>) => {
   ) {
     validSettings.endpoint = EModelEndpoint.agents;
   }
+  
+  //if default agent is present and endpoint is not yet set to agent, set endpoint to agents. I added
+  //Even if the user didn't specify anything in the URL, if we (the app) know there's a default agent for this user, force the endpoint to agents
+  logger.info(`inside processValidSetting finding if set endpoints to agents`);
+  logger.info(
+    'urlAgentId',
+    urlAgentId,
+  );
+  if (urlAgentId && !isAgentsEndpoint(validSettings.endpoint)) {
+    validSettings.endpoint = EModelEndpoint.agents;
+  }
+  
 
   return validSettings;
 };
@@ -372,7 +388,7 @@ export default function useQueryParams({
       delete queryParams.prompt;
       delete queryParams.q;
       delete queryParams.submit;
-      const validSettings = processValidSettings(queryParams);
+      const validSettings = processValidSettings(queryParams, urlAgentId);
 
       return { decodedPrompt, validSettings, shouldAutoSubmit };
     };
