@@ -529,6 +529,8 @@ export default function useQueryParams({
     setSearchParams,
     queryClient,
     processSubmission,
+    user,          // <-- add this
+    urlAgentId,    // <-- and this
   ]);
 
   useEffect(() => {
