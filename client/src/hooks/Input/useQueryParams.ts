@@ -544,7 +544,7 @@ export default function useQueryParams({
     setSearchParams,
     queryClient,
     processSubmission,
-    user,          // <-- add this
+    user?.role,          // <-- add this
     urlAgentId,    // <-- and this
   ]);
 
