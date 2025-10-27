@@ -36,9 +36,12 @@ import store from '~/store';
 import { logger } from '~/utils';
 
 const ChatForm = memo(({ index = 0 }: { index?: number }) => {
+  logger.info(`ChatForm invoked`);
   const submitButtonRef = useRef<HTMLButtonElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   useFocusChatEffect(textAreaRef);
+
+  logger.info(`textAreaRef in ChatForm`, textAreaRef);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [, setIsScrollable] = useState(false);
@@ -61,8 +64,6 @@ const ChatForm = memo(({ index = 0 }: { index?: number }) => {
   const [showMentionPopover, setShowMentionPopover] = useRecoilState(
     store.showMentionPopoverFamily(index),
   );
-
-  logger.info(`ChatForm invoked`);
   
   const { requiresKey } = useRequiresKey();
   const methods = useChatFormContext();
@@ -93,6 +94,8 @@ const ChatForm = memo(({ index = 0 }: { index?: number }) => {
     () => conversation?.conversationId ?? Constants.NEW_CONVO,
     [conversation?.conversationId],
   );
+
+  logger.info(`conversationId in ChatForm`, conversationId);
 
   const isRTL = useMemo(
     () => (chatDirection != null ? chatDirection?.toLowerCase() === 'rtl' : false),
