@@ -112,6 +112,7 @@ export default function useQueryParams({
 }: {
   textAreaRef: React.RefObject<HTMLTextAreaElement>;
 }) {
+  logger.info(`useQueryParams function invoked`);
   const maxAttempts = 50;
   const attemptsRef = useRef(0);
   const MAX_SETTINGS_WAIT_MS = 3000;
