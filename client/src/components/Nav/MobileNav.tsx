@@ -1,10 +1,10 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys, Constants } from 'librechat-data-provider';
+import { QueryKeys, Constants, EModelEndpoint, SystemRoles } from 'librechat-data-provider';
 import type { TMessage } from 'librechat-data-provider';
 import type { Dispatch, SetStateAction } from 'react';
-import { useLocalize, useNewConvo } from '~/hooks';
+import { useLocalize, useNewConvo, useGetAgentsConfig, useAuthContext } from '~/hooks';
 import store from '~/store';
 
 export default function MobileNav({
@@ -17,6 +17,8 @@ export default function MobileNav({
   const { newConversation } = useNewConvo();
   const conversation = useRecoilValue(store.conversationByIndex(0));
   const { title = 'New Chat' } = conversation || {};
+  const { agentsConfig } = useGetAgentsConfig();
+  const { user } = useAuthContext();
 
   return (
     <div className="bg-token-main-surface-primary sticky top-0 z-10 flex min-h-[40px] items-center justify-center bg-white pl-1 dark:bg-gray-800 dark:text-white md:hidden">
@@ -62,7 +64,24 @@ export default function MobileNav({
             [],
           );
           queryClient.invalidateQueries([QueryKeys.messages]);
-          newConversation();
+
+          // Check if we should use default agent for USER role
+          const defaultAgent = agentsConfig?.defaultAgent ?? '';
+          const shouldUseDefaultAgent =
+            user?.role === SystemRoles.USER && defaultAgent && defaultAgent !== '';
+
+          if (shouldUseDefaultAgent) {
+            // Create new conversation with default agent
+            newConversation({
+              preset: {
+                endpoint: EModelEndpoint.agents,
+                agent_id: defaultAgent,
+              },
+            });
+          } else {
+            // Create generic new conversation
+            newConversation();
+          }
         }}
       >
         <svg
