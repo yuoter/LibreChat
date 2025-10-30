@@ -18,6 +18,7 @@ import {
   useSubmitMessage,
   useFocusChatEffect,
 } from '~/hooks';
+import { useGetStartupConfig } from '~/data-provider';
 import { mainTextareaId, BadgeItem } from '~/common';
 import AttachFileChat from './Files/AttachFileChat';
 import FileFormChat from './Files/FileFormChat';
@@ -85,6 +86,8 @@ const ChatForm = memo(({ index = 0 }: { index?: number }) => {
   } = useAddedChatContext();
   const assistantMap = useAssistantsMapContext();
   const showStopAdded = useRecoilValue(store.showStopButtonByIndex(addedIndex));
+
+  const { data: startupConfig } = useGetStartupConfig();
 
   const endpoint = useMemo(
     () => conversation?.endpointType ?? conversation?.endpoint,
@@ -319,7 +322,7 @@ const ChatForm = memo(({ index = 0 }: { index?: number }) => {
                 }
               />
               <div className="mx-auto flex" />
-              {SpeechToText && (
+              {SpeechToText && (startupConfig?.interface?.useMicrophoneButton ?? true) && (
                 <AudioRecorder
                   methods={methods}
                   ask={submitMessage}
