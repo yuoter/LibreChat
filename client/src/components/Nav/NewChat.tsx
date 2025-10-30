@@ -1,10 +1,10 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys, Constants } from 'librechat-data-provider';
+import { QueryKeys, Constants, EModelEndpoint, SystemRoles } from 'librechat-data-provider';
 import { TooltipAnchor, NewChatIcon, MobileSidebar, Sidebar, Button } from '@librechat/client';
 import type { TMessage } from 'librechat-data-provider';
-import { useLocalize, useNewConvo } from '~/hooks';
+import { useLocalize, useNewConvo, useGetAgentsConfig, useAuthContext } from '~/hooks';
 import store from '~/store';
 
 export default function NewChat({
@@ -26,6 +26,8 @@ export default function NewChat({
   const navigate = useNavigate();
   const localize = useLocalize();
   const { conversation } = store.useCreateConversationAtom(index);
+  const { agentsConfig } = useGetAgentsConfig();
+  const { user } = useAuthContext();
 
   const clickHandler: React.MouseEventHandler<HTMLButtonElement> = useCallback(
     (e) => {
@@ -38,13 +40,31 @@ export default function NewChat({
         [],
       );
       queryClient.invalidateQueries([QueryKeys.messages]);
-      newConvo();
+
+      // Check if we should use default agent for USER role
+      const defaultAgent = agentsConfig?.defaultAgent ?? '';
+      const shouldUseDefaultAgent =
+        user?.role === SystemRoles.USER && defaultAgent && defaultAgent !== '';
+
+      if (shouldUseDefaultAgent) {
+        // Create new conversation with default agent
+        newConvo({
+          preset: {
+            endpoint: EModelEndpoint.agents,
+            agent_id: defaultAgent,
+          },
+        });
+      } else {
+        // Create generic new conversation
+        newConvo();
+      }
+
       navigate('/c/new', { state: { focusChat: true } });
       if (isSmallScreen) {
         toggleNav();
       }
     },
-    [queryClient, conversation, newConvo, navigate, toggleNav, isSmallScreen],
+    [queryClient, conversation, newConvo, navigate, toggleNav, isSmallScreen, agentsConfig, user],
   );
 
   return (

@@ -1,14 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys, Constants } from 'librechat-data-provider';
+import { QueryKeys, Constants, EModelEndpoint, SystemRoles } from 'librechat-data-provider';
 import { TooltipAnchor, Button, NewChatIcon } from '@librechat/client';
 import type { TMessage } from 'librechat-data-provider';
 import { useChatContext } from '~/Providers';
-import { useLocalize } from '~/hooks';
+import { useLocalize, useGetAgentsConfig, useAuthContext } from '~/hooks';
 
 export default function HeaderNewChat() {
   const localize = useLocalize();
   const queryClient = useQueryClient();
   const { conversation, newConversation } = useChatContext();
+  const { agentsConfig } = useGetAgentsConfig();
+  const { user } = useAuthContext();
 
   const clickHandler: React.MouseEventHandler<HTMLButtonElement> = (e) => {
     if (e.button === 0 && (e.ctrlKey || e.metaKey)) {
@@ -20,7 +22,24 @@ export default function HeaderNewChat() {
       [],
     );
     queryClient.invalidateQueries([QueryKeys.messages]);
-    newConversation();
+
+    // Check if we should use default agent for USER role
+    const defaultAgent = agentsConfig?.defaultAgent ?? '';
+    const shouldUseDefaultAgent =
+      user?.role === SystemRoles.USER && defaultAgent && defaultAgent !== '';
+
+    if (shouldUseDefaultAgent) {
+      // Create new conversation with default agent
+      newConversation({
+        preset: {
+          endpoint: EModelEndpoint.agents,
+          agent_id: defaultAgent,
+        },
+      });
+    } else {
+      // Create generic new conversation
+      newConversation();
+    }
   };
 
   return (
