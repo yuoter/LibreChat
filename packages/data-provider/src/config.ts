@@ -589,6 +589,9 @@ export const interfaceSchema = z
     tools: true,
     attachFiles: true,
     forking: true,
+    selectModelsButton: true,
+    attachFilesButton: true,
+    useMicrophoneButton: true,
   });
 
 export type TInterfaceConfig = z.infer<typeof interfaceSchema>;
