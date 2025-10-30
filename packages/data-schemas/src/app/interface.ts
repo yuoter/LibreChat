@@ -44,9 +44,9 @@ export async function loadDefaultInterface({
     tools: interfaceConfig?.tools ?? defaults.tools,
     attachFiles: interfaceConfig?.attachFiles ?? defaults.attachFiles,
     forking: interfaceConfig?.forking ?? defaults.forking,
-    selectModelsButton: interfaceConfig?.forking ?? defaults.forking,
-    attachFilesButton: interfaceConfig?.forking ?? defaults.forking,
-    useMicrophoneButton: interfaceConfig?.forking ?? defaults.forking,
+    selectModelsButton: interfaceConfig?.selectModelsButton ?? defaults.selectModelsButton,
+    attachFilesButton: interfaceConfig?.attachFilesButton ?? defaults.attachFilesButton,
+    useMicrophoneButton: interfaceConfig?.useMicrophoneButton ?? defaults.useMicrophoneButton,
     // Permissions - only include if explicitly configured
     bookmarks: interfaceConfig?.bookmarks,
     memories: shouldDisableMemories ? false : interfaceConfig?.memories,
