@@ -557,6 +557,10 @@ export const interfaceSchema = z
     tools: z.boolean().optional(),
     attachFiles: z.boolean().optional(),
     forking: z.boolean().optional(),
+    //buttons:
+    selectModelsButton: z.boolean().optional(),
+    attachFilesButton: z.boolean().optional(),
+    useMicrophoneButton: z.boolean().optional(),
   })
   .default({
     endpointsMenu: true,
@@ -585,6 +589,9 @@ export const interfaceSchema = z
     tools: true,
     attachFiles: true,
     forking: true,
+    selectModelsButton: true,
+    attachFilesButton: true,
+    useMicrophoneButton: true,
   });
 
 export type TInterfaceConfig = z.infer<typeof interfaceSchema>;
