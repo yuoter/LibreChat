@@ -71,8 +71,6 @@ export interface AppConfig {
   imageOutputType: string;
   /** Interface configuration */
   interfaceConfig?: TCustomConfig['interface'];
-  /** Default avatar for agents without a custom image */
-  defaultAgentsAvatar?: string;
   /** Turnstile configuration */
   turnstileConfig?: Partial<TCustomConfig['turnstile']>;
   /** Balance configuration */

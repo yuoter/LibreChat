@@ -7,10 +7,6 @@ version: 1.2.1
 # Cache settings: Set to true to enable caching
 cache: true
 
-# Default fallback avatar for agents without an uploaded image
-# Provide a path relative to the public assets directory
-defaultAgentsAvatar: 'default_agent_avatar.png'
-
 # File storage configuration
 # Single strategy for all file types (legacy format, still supported)
 # fileStrategy: "s3"
