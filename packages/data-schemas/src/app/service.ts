@@ -83,6 +83,7 @@ export const AppService = async (params?: {
     availableTools,
     imageOutputType,
     interfaceConfig,
+    defaultAgentsAvatar: config.defaultAgentsAvatar,
     turnstileConfig,
     fileStrategies: config.fileStrategies,
   };

@@ -15,6 +15,7 @@ import {
 import type { IconMapProps, AgentIconMapProps, IconsRecord } from '~/common';
 import UnknownIcon from './UnknownIcon';
 import { cn } from '~/utils';
+import { useGetStartupConfig } from '~/data-provider';
 
 const AssistantAvatar = ({
   className = '',
@@ -41,12 +42,27 @@ const AssistantAvatar = ({
 };
 
 const AgentAvatar = ({ className = '', avatar = '', agentName, size }: AgentIconMapProps) => {
+  const { data: startupConfig } = useGetStartupConfig();
+  const defaultAgentsAvatar = startupConfig?.defaultAgentsAvatar;
+
   if (agentName != null && agentName && avatar) {
     return (
       <img
         src={avatar}
         className="bg-token-surface-secondary dark:bg-token-surface-tertiary h-full w-full rounded-full object-cover"
         alt={agentName}
+        width="80"
+        height="80"
+      />
+    );
+  }
+
+  if (defaultAgentsAvatar) {
+    return (
+      <img
+        src={defaultAgentsAvatar}
+        className="bg-token-surface-secondary dark:bg-token-surface-tertiary h-full w-full rounded-full object-cover"
+        alt={agentName || 'Agent avatar'}
         width="80"
         height="80"
       />
