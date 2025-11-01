@@ -11,7 +11,7 @@ import {
   AgentListResponse,
 } from 'librechat-data-provider';
 import type t from 'librechat-data-provider';
-import { useLocalize, useDefaultConvo } from '~/hooks';
+import { useLocalize, useDefaultConvo, useGetAgentsConfig } from '~/hooks';
 import { useChatContext } from '~/Providers';
 import { renderAgentAvatar } from '~/utils';
 
@@ -39,6 +39,7 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent, isOpen, onClose }) => 
   const dialogRef = useRef<HTMLDivElement>(null);
   const getDefaultConversation = useDefaultConvo();
   const { conversation, newConversation } = useChatContext();
+  const { agentsConfig } = useGetAgentsConfig();
 
   /**
    * Navigate to chat with the selected agent
@@ -149,7 +150,12 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent, isOpen, onClose }) => 
         </Button>
 
         {/* Agent avatar - top center */}
-        <div className="mt-6 flex justify-center">{renderAgentAvatar(agent, { size: 'xl' })}</div>
+        <div className="mt-6 flex justify-center">
+          {renderAgentAvatar(agent, {
+            size: 'xl',
+            defaultAgentsAvatar: agentsConfig?.defaultAgentsAvatar,
+          })}
+        </div>
 
         {/* Agent name - center aligned below image */}
         <div className="mt-3 text-center">

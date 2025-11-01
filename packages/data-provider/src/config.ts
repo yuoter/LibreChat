@@ -274,6 +274,7 @@ export const agentsEndpointSchema = baseEndpointSchema
       minRelevanceScore: z.number().min(0.0).max(1.0).optional().default(0.45),
       allowedProviders: z.array(z.union([z.string(), eModelEndpointSchema])).optional(),
       defaultAgent: z.string().nullable().default(null),
+      defaultAgentsAvatar: z.string().optional(),
       capabilities: z
         .array(z.nativeEnum(AgentCapabilities))
         .optional()
