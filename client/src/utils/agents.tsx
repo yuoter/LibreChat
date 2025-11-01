@@ -23,7 +23,7 @@ export const getAgentAvatarUrl = (agent: t.Agent | null | undefined): string | n
 };
 
 /**
- * Renders an agent avatar with fallback to Bot icon
+ * Renders an agent avatar with fallback to custom SVG or Bot icon
  * Consistent across all agent displays
  */
 export const renderAgentAvatar = (
@@ -32,9 +32,10 @@ export const renderAgentAvatar = (
     size?: 'sm' | 'md' | 'lg' | 'xl';
     className?: string;
     showBorder?: boolean;
+    defaultAgentsAvatar?: string;
   } = {},
 ): React.ReactElement => {
-  const { size = 'md', className = '', showBorder = true } = options;
+  const { size = 'md', className = '', showBorder = true, defaultAgentsAvatar } = options;
 
   const avatarUrl = getAgentAvatarUrl(agent);
 
@@ -68,6 +69,20 @@ export const renderAgentAvatar = (
         <img
           src={avatarUrl}
           alt={`${agent?.name || 'Agent'} avatar`}
+          className={`${sizeClasses[size]} rounded-full object-cover shadow-lg ${borderClasses}`}
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+
+  // Fallback: use custom SVG if provided, otherwise Bot icon
+  if (defaultAgentsAvatar) {
+    return (
+      <div className={`flex items-center justify-center ${sizeClasses[size]} ${className}`}>
+        <img
+          src={defaultAgentsAvatar}
+          alt="Default agent avatar"
           className={`${sizeClasses[size]} rounded-full object-cover shadow-lg ${borderClasses}`}
           loading="lazy"
         />

@@ -259,6 +259,8 @@ endpoints:
   #   minRelevanceScore: 0.45
   #   # (optional) Sets the default agent used when none is specified by the client
   #   defaultAgent: "uuid_of_agent"
+  #   # (optional) Path to SVG image to use as default avatar for agents without uploaded avatars
+  #   defaultAgentsAvatar: "default_agent_avatar.svg"
   #   # (optional) Agent Capabilities available to all users. Omit the ones you wish to exclude. Defaults to list below.
   #   capabilities: ["execute_code", "file_search", "actions", "tools"]
   custom:

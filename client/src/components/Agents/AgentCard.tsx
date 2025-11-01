@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Label } from '@librechat/client';
 import type t from 'librechat-data-provider';
-import { useLocalize, TranslationKeys, useAgentCategories } from '~/hooks';
+import { useLocalize, TranslationKeys, useAgentCategories, useGetAgentsConfig } from '~/hooks';
 import { cn, renderAgentAvatar, getContactDisplayName } from '~/utils';
 
 interface AgentCardProps {
@@ -16,6 +16,7 @@ interface AgentCardProps {
 const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick, className = '' }) => {
   const localize = useLocalize();
   const { categories } = useAgentCategories();
+  const { agentsConfig } = useGetAgentsConfig();
 
   const categoryLabel = useMemo(() => {
     if (!agent.category) return '';
@@ -59,7 +60,12 @@ const AgentCard: React.FC<AgentCardProps> = ({ agent, onClick, className = '' })
       <div className="flex h-full items-start gap-3">
         {/* Left column: Avatar and Category */}
         <div className="flex h-full flex-shrink-0 flex-col justify-between space-y-4">
-          <div className="flex-shrink-0">{renderAgentAvatar(agent, { size: 'sm' })}</div>
+          <div className="flex-shrink-0">
+            {renderAgentAvatar(agent, {
+              size: 'sm',
+              defaultAgentsAvatar: agentsConfig?.defaultAgentsAvatar,
+            })}
+          </div>
 
           {/* Category tag */}
           {agent.category && (
