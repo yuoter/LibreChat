@@ -530,7 +530,8 @@ async function setupOpenId() {
           user = await updateUser(user._id, user);
 
           logger.info(
-            `[openidStrategy] login success openidId: ${user.openidId} | email: ${user.email} | username: ${user.username} `,
+            //old: `[openidStrategy] login success openidId: ${user.openidId} | email: ${user.email} | username: ${user.username} `,
+            `[openidStrategy] login success openidId: ${user.openidId} `,
             {
               user: {
                 openidId: user.openidId,
