@@ -36,7 +36,8 @@ export async function findOpenIDUser({
   if (!user && email) {
     user = await findUser({ email });
     logger.warn(
-      `[${strategyName}] user ${user ? 'found' : 'not found'} with email: ${email} for openidId: ${openidId}`,
+      //old: `[${strategyName}] user ${user ? 'found' : 'not found'} with email: ${email} for openidId: ${openidId}`,
+      `[${strategyName}] user ${user ? 'found' : 'not found'} with email for openidId: ${openidId}`,
     );
 
     // If user found by email, check if they're allowed to use OpenID provider
