@@ -489,12 +489,21 @@ const getListAgentsHandler = async (req, res) => {
       after: cursor,
     });
     if (data?.data?.length) {
-      data.data = data.data.map((agent) => {
-        if (publiclyAccessibleIds.some((id) => id.equals(agent._id))) {
-          agent.isPublic = true;
-        }
-        return agent;
-      });
+      // Refresh S3 URLs and mark public agents (read-only, no DB writes)
+      data.data = await Promise.all(
+        data.data.map(async (agent) => {
+          // Refresh S3 avatar URL if needed - only update the response, not the DB
+          // This keeps the list endpoint read-only and avoids version/timestamp churn
+          if (agent.avatar && agent.avatar?.source === FileSources.s3) {
+            agent.avatar.filepath = await refreshS3Url(agent.avatar);
+          }
+          // Mark public agents
+          if (publiclyAccessibleIds.some((id) => id.equals(agent._id))) {
+            agent.isPublic = true;
+          }
+          return agent;
+        }),
+      );
     }
     return res.json(data);
   } catch (error) {
