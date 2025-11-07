@@ -112,6 +112,11 @@ const tokenValues = Object.assign(
     'command-r-plus': { prompt: 3, completion: 15 },
     'command-r': { prompt: 0.5, completion: 1.5 },
     'deepseek-reasoner': { prompt: 0.28, completion: 0.42 },
+    //new models that I added
+    'deepseek-ai/DeepSeek-V3.2-Exp': { prompt: 0.27, completion: 0.4 },
+    'deepseek-ai/DeepSeek-V3.1-Terminus': { prompt: 0.27, completion: 1.00 },
+    'deepseek-ai/DeepSeek-V3.1': { prompt: 0.27, completion: 1.00 },
+    //end of new models that I added
     deepseek: { prompt: 0.28, completion: 0.42 },
     /* cohere doesn't have rates for the older command models,
   so this was from https://artificialanalysis.ai/models/command-light/providers */

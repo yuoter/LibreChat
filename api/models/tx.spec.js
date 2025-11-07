@@ -500,6 +500,26 @@ describe('Deepseek Model Tests', () => {
     const result = tokenValues[valueKey].prompt && multiplier === tokenValues[valueKey].prompt;
     expect(result).toBe(true);
   });
+  //tests of new models that I added
+  it('should return the correct multipliers for DeepSeek V3 models', () => {
+    const models = [
+      'deepseek-ai/DeepSeek-V3.2-Exp',
+      'deepseek-ai/DeepSeek-V3.1-Terminus',
+      'deepseek-ai/DeepSeek-V3.1',
+    ];
+
+    models.forEach((model) => {
+      const valueKey = getValueKey(model);
+      expect(tokenValues[valueKey]).toBeTruthy();
+
+      const promptRate = getMultiplier({ model, tokenType: 'prompt' });
+      const completionRate = getMultiplier({ model, tokenType: 'completion' });
+
+      expect(promptRate).toBe(tokenValues[valueKey].prompt);
+      expect(completionRate).toBe(tokenValues[valueKey].completion);
+    });
+  });
+  //end of tests of new models that I added  
 });
 
 describe('getCacheMultiplier', () => {
