@@ -181,6 +181,15 @@ function calculateTokenValue(txn) {
     txn.tokenValue = Math.ceil(txn.tokenValue * cancelRate);
     txn.rate *= cancelRate;
   }
+  //to see what rates were actually applied
+  logger.debug('[Transaction.calculateTokenValue] Applied rate', {
+    tokenType,
+    model,
+    rate: txn.rate,
+    rawAmount: txn.rawAmount,
+    tokenValue: txn.tokenValue,
+    endpointTokenConfig: !!endpointTokenConfig,
+  });
 }
 
 /**
