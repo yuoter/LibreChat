@@ -21,6 +21,8 @@ jest.mock('~/hooks', () => ({
     return translations[key] || key;
   },
   useProgress: (initialProgress: number) => (initialProgress >= 1 ? 1 : initialProgress),
+  useGetAgentsConfig: () => ({ agentsConfig: {} }),
+  useAuthContext: () => ({ user: { role: 'USER' } }),
 }));
 
 jest.mock('~/components/Chat/Messages/Content/MessageContent', () => ({
@@ -96,9 +98,7 @@ describe('ToolCall', () => {
           messageId: 'msg123',
           toolCallId: 'tool456',
           conversationId: 'conv789',
-          [Tools.ui_resources]: {
-            '0': { type: 'button', label: 'Click me' },
-          },
+          [Tools.ui_resources]: [{ type: 'button', label: 'Click me' }],
         },
       ];
 
@@ -130,18 +130,14 @@ describe('ToolCall', () => {
           messageId: 'msg1',
           toolCallId: 'tool1',
           conversationId: 'conv1',
-          [Tools.ui_resources]: {
-            '0': { type: 'form', fields: [] },
-          },
+          [Tools.ui_resources]: [{ type: 'form', fields: [] }],
         },
         {
-          type: Tools.web_search,
+          type: Tools.memory,
           messageId: 'msg2',
           toolCallId: 'tool2',
           conversationId: 'conv2',
-          [Tools.web_search]: {
-            results: ['result1', 'result2'],
-          },
+          [Tools.memory]: { key: 'k', value: 'v', type: 'update' as const },
         },
       ];
 
@@ -163,9 +159,7 @@ describe('ToolCall', () => {
           messageId: 'msg123',
           toolCallId: 'tool456',
           conversationId: 'conv789',
-          [Tools.ui_resources]: {
-            '0': { type: 'chart', data: [] },
-          },
+          [Tools.ui_resources]: [{ type: 'chart', data: [] }],
         },
       ];
 
@@ -212,9 +206,7 @@ describe('ToolCall', () => {
           messageId: 'msg123',
           toolCallId: 'tool456',
           conversationId: 'conv789',
-          [Tools.ui_resources]: {
-            '0': { type: 'button', label: 'Test' },
-          },
+          [Tools.ui_resources]: [{ type: 'button', label: 'Test' }],
         },
       ];
 
@@ -290,9 +282,8 @@ describe('ToolCall', () => {
         <ToolCall
           {...mockProps}
           auth="https://auth.example.com"
-          authDomain="example.com"
-          progress={0.5}
-          cancelled={true}
+          initialProgress={0.5}
+          isSubmitting={false}
         />,
       );
 
@@ -304,9 +295,8 @@ describe('ToolCall', () => {
         <ToolCall
           {...mockProps}
           auth="https://auth.example.com"
-          authDomain="example.com"
-          progress={1}
-          cancelled={false}
+          initialProgress={1}
+          isSubmitting={false}
         />,
       );
 
@@ -316,7 +306,7 @@ describe('ToolCall', () => {
 
   describe('edge cases', () => {
     it('should handle undefined args', () => {
-      renderWithRecoil(<ToolCall {...mockProps} args={undefined} />);
+      renderWithRecoil(<ToolCall {...mockProps} args={undefined as unknown as string} />);
 
       fireEvent.click(screen.getByText('Completed testFunction'));
 
@@ -336,7 +326,7 @@ describe('ToolCall', () => {
     });
 
     it('should handle missing domain', () => {
-      renderWithRecoil(<ToolCall {...mockProps} domain={undefined} authDomain={undefined} />);
+      renderWithRecoil(<ToolCall {...mockProps} />);
 
       fireEvent.click(screen.getByText('Completed testFunction'));
 
@@ -352,8 +342,8 @@ describe('ToolCall', () => {
           messageId: 'msg123',
           toolCallId: 'tool456',
           conversationId: 'conv789',
-          [Tools.ui_resources]: {
-            '0': {
+          [Tools.ui_resources]: [
+            {
               type: 'nested',
               data: {
                 deep: {
@@ -363,7 +353,7 @@ describe('ToolCall', () => {
                 },
               },
             },
-          },
+          ],
         },
       ];
 
