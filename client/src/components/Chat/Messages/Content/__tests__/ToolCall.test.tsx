@@ -1,13 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { RecoilRoot } from 'recoil';
-import { Tools, SystemRoles } from 'librechat-data-provider';
+import { Tools } from 'librechat-data-provider';
 import ToolCall from '../ToolCall';
 
 // Mock dependencies
-const useGetAgentsConfigMock = jest.fn(() => ({ agentsConfig: undefined, endpointsConfig: undefined }));
-const useAuthContextMock = jest.fn(() => ({ user: { role: SystemRoles.USER } }));
-
 jest.mock('~/hooks', () => ({
   useLocalize: () => (key: string, values?: any) => {
     const translations: Record<string, string> = {
@@ -24,8 +21,6 @@ jest.mock('~/hooks', () => ({
     return translations[key] || key;
   },
   useProgress: (initialProgress: number) => (initialProgress >= 1 ? 1 : initialProgress),
-  useGetAgentsConfig: () => useGetAgentsConfigMock(),
-  useAuthContext: () => useAuthContextMock(),
 }));
 
 jest.mock('~/components/Chat/Messages/Content/MessageContent', () => ({
@@ -44,8 +39,8 @@ jest.mock('../ToolCallInfo', () => ({
 
 jest.mock('../ProgressText', () => ({
   __esModule: true,
-  default: ({ onClick, inProgressText, finishedText, hasInput = true }: any) => (
-    <div onClick={hasInput ? onClick : undefined}>{finishedText || inProgressText}</div>
+  default: ({ onClick, inProgressText, finishedText, _error, _hasInput, _isExpanded }: any) => (
+    <div onClick={onClick}>{finishedText || inProgressText}</div>
   ),
 }));
 
@@ -55,7 +50,7 @@ jest.mock('../Parts', () => ({
   ),
 }));
 
-jest.mock('@librechat/client', () => ({
+jest.mock('~/components/ui', () => ({
   Button: ({ children, onClick, ...props }: any) => (
     <button onClick={onClick} {...props}>
       {children}
@@ -91,8 +86,6 @@ describe('ToolCall', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useGetAgentsConfigMock.mockReturnValue({ agentsConfig: undefined, endpointsConfig: undefined });
-    useAuthContextMock.mockReturnValue({ user: { role: SystemRoles.USER } });
   });
 
   describe('attachments prop passing', () => {
@@ -210,32 +203,6 @@ describe('ToolCall', () => {
       // Click to close
       fireEvent.click(screen.getByText('Completed testFunction'));
       expect(screen.queryByTestId('tool-call-info')).not.toBeInTheDocument();
-    });
-
-    it('should NOT expand when showUserActionDebug is false for USER role', () => {
-      useGetAgentsConfigMock.mockReturnValue({
-        agentsConfig: { showUserActionDebug: false },
-        endpointsConfig: undefined,
-      });
-      useAuthContextMock.mockReturnValue({ user: { role: SystemRoles.USER } });
-
-      renderWithRecoil(<ToolCall {...mockProps} />);
-
-      fireEvent.click(screen.getByText('Completed testFunction'));
-      expect(screen.queryByTestId('tool-call-info')).not.toBeInTheDocument();
-    });
-
-    it('should expand when showUserActionDebug is false for ADMIN role', () => {
-      useGetAgentsConfigMock.mockReturnValue({
-        agentsConfig: { showUserActionDebug: false },
-        endpointsConfig: undefined,
-      });
-      useAuthContextMock.mockReturnValue({ user: { role: SystemRoles.ADMIN } });
-
-      renderWithRecoil(<ToolCall {...mockProps} />);
-
-      fireEvent.click(screen.getByText('Completed testFunction'));
-      expect(screen.getByTestId('tool-call-info')).toBeInTheDocument();
     });
 
     it('should pass all required props to ToolCallInfo', () => {
