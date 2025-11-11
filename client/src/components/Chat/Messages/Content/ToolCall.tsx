@@ -1,9 +1,9 @@
 import { useMemo, useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { Button } from '@librechat/client';
 import { TriangleAlert } from 'lucide-react';
-import { actionDelimiter, actionDomainSeparator, Constants } from 'librechat-data-provider';
+import { actionDelimiter, actionDomainSeparator, Constants, SystemRoles } from 'librechat-data-provider';
 import type { TAttachment } from 'librechat-data-provider';
-import { useLocalize, useProgress } from '~/hooks';
+import { useLocalize, useProgress, useGetAgentsConfig, useAuthContext } from '~/hooks';
 import { AttachmentGroup } from './Parts';
 import ToolCallInfo from './ToolCallInfo';
 import ProgressText from './ProgressText';
@@ -33,6 +33,8 @@ export default function ToolCall({
   const [contentHeight, setContentHeight] = useState<number | undefined>(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const prevShowInfoRef = useRef<boolean>(showInfo);
+  const { agentsConfig } = useGetAgentsConfig();
+  const { user } = useAuthContext();
 
   const { function_name, domain, isMCPToolCall } = useMemo(() => {
     if (typeof name !== 'string') {
@@ -78,6 +80,15 @@ export default function ToolCall({
     () => (args?.length ?? 0) > 0 || (output?.length ?? 0) > 0,
     [args, output],
   );
+
+  const canShowDebug = useMemo(() => {
+    if (agentsConfig?.showUserActionDebug !== false) {
+      return true;
+    }
+    return user?.role === SystemRoles.ADMIN;
+  }, [agentsConfig?.showUserActionDebug, user?.role]);
+
+  const hasInput = hasInfo && canShowDebug;
 
   const authDomain = useMemo(() => {
     const authURL = auth ?? '';
@@ -170,7 +181,7 @@ export default function ToolCall({
             !cancelled && authDomain.length > 0 ? localize('com_ui_requires_auth') : undefined
           }
           finishedText={getFinishedText()}
-          hasInput={hasInfo}
+          hasInput={hasInput}
           isExpanded={showInfo}
           error={cancelled}
         />
@@ -203,7 +214,7 @@ export default function ToolCall({
           }}
         >
           <div ref={contentRef}>
-            {showInfo && hasInfo && (
+            {showInfo && hasInfo && canShowDebug && (
               <ToolCallInfo
                 key="tool-call-info"
                 input={args ?? ''}
