@@ -37,9 +37,9 @@ export default function Footer({ className }: { className?: string }) {
   const mainContentParts = (
     typeof config?.customFooter === 'string'
       ? config.customFooter
-      : '[Video Summarizer ' +
+      : '[Some text can be placed here ' +
         Constants.VERSION +
-        '](https://videosummarizerai.com) - ' +
+        '](https://somelinkcanbeplacedhere.exampleurl) - ' +
         localize('com_ui_latest_footer')
   ).split('|');
 
