@@ -186,8 +186,6 @@ const Error = ({ text }: { text: string }) => {
       '',
       `ℹ️ [Frequently Asked Questions (FAQ)](${subFaqUrl})`,
       `📧 Support: [${supportEmail}](mailto:${supportEmail})`,
-      '',
-      `In case if you think that it is a mistake, you can contact: [${proSupportEmail}](mailto:${proSupportEmail})`,
     ].join('\n');
 
     return (
