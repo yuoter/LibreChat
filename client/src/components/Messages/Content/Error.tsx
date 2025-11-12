@@ -122,12 +122,13 @@ const Error = ({ text }: { text: string }) => {
     const proSupportEmail = startupConfig?.insideSubscription?.proSupportEmail ?? '';
 
     const md = [
-      `Insufficient Balance! Token Credits Balance: ${balance}. Prompt tokens: ${promptTokens}. Cost: ${tokenCost}.`,
+      `Insufficient Balance! Token Credits Balance: ${balance}. Prompt token credits cost: ${tokenCost}.`,
       '',
-      'Open a new chat to see if this error persists.',
-      `In case if you think that it is a mistake, you can contact: [${proSupportEmail}](mailto:${proSupportEmail})`,
-      'Copy this message to the support and explain why you think it is a mistake.',
-    ].join('\n');
+      'You can wait until the end of your billing period so that your token credit balance is automatically refreshed.',
+      '',
+      'If you have a paid subscription rather than a free trial, you can request a free increase in your monthly token credit balance quota to resolve this issue.',
+      `To request an increase, please write to: [${proSupportEmail}](mailto:${proSupportEmail})`,
+    ].join('\n');    
 
     return (
       <>
