@@ -1,5 +1,5 @@
 const { matchModelName } = require('@librechat/api');
-const defaultRate = 6;
+const defaultRate = 1;
 
 /**
  * AWS Bedrock pricing
