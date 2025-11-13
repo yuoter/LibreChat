@@ -48,6 +48,8 @@ const BaseClient = require('~/app/clients/BaseClient');
 const { getRoleByName } = require('~/models/Role');
 const { loadAgent } = require('~/models/Agent');
 const { getMCPManager } = require('~/config');
+const { getValueKey } = require('~/models/tx');
+
 
 const omitTitleOptions = new Set([
   'stream',
@@ -616,6 +618,30 @@ class AgentClient extends BaseClient {
   }
 
   /**
+   * Resolves model name for transactions, handling agent IDs
+   * @param {string} modelIdentifier
+   * @returns {string | undefined}
+   */
+  resolveModelForTransaction(modelIdentifier) {
+    if (!modelIdentifier) {
+      return (
+        this.model ||
+        this.options?.model ||
+        this.options?.agent?.model_parameters?.model
+      );
+    }
+    if (typeof modelIdentifier === 'string' && modelIdentifier.startsWith('agent_')) {
+      return (
+        this.model ||
+        this.options?.model ||
+        this.options?.agent?.model_parameters?.model ||
+        modelIdentifier
+      );
+    }
+    return modelIdentifier;
+  }
+
+  /**
    * @param {Object} params
    * @param {string} [params.model]
    * @param {string} [params.context='message']
@@ -649,6 +675,11 @@ class AgentClient extends BaseClient {
       const cache_creation = Number(usage.input_token_details?.cache_creation) || 0;
       const cache_read = Number(usage.input_token_details?.cache_read) || 0;
 
+      const candidateModel =
+        usage.model ?? model ?? this.model ?? this.options.agent.model_parameters.model;
+      const resolvedModel = this.resolveModelForTransaction(candidateModel);
+      const valueKey = getValueKey(resolvedModel, this.options.endpoint);
+      
       const txMetadata = {
         context,
         balance,
@@ -656,7 +687,8 @@ class AgentClient extends BaseClient {
         conversationId: this.conversationId,
         user: this.user ?? this.options.req.user?.id,
         endpointTokenConfig: this.options.endpointTokenConfig,
-        model: usage.model ?? model ?? this.model ?? this.options.agent.model_parameters.model,
+        model: resolvedModel,
+        valueKey,
       };
 
       if (i > 0) {
@@ -1296,14 +1328,19 @@ class AgentClient extends BaseClient {
     context = 'message',
   }) {
     try {
+      const candidateModel = model ?? this.model ?? this.options.agent?.model_parameters?.model;
+      const resolvedModel = this.resolveModelForTransaction(candidateModel);
+      const valueKey = getValueKey(resolvedModel, this.options.endpoint);
+      
       await spendTokens(
         {
-          model,
+          model: resolvedModel,
           context,
           balance,
           conversationId: this.conversationId,
           user: this.user ?? this.options.req.user?.id,
           endpointTokenConfig: this.options.endpointTokenConfig,
+          valueKey,          
         },
         { promptTokens, completionTokens },
       );
@@ -1316,12 +1353,13 @@ class AgentClient extends BaseClient {
       ) {
         await spendTokens(
           {
-            model,
+            model: resolvedModel,
             balance,
             context: 'reasoning',
             conversationId: this.conversationId,
             user: this.user ?? this.options.req.user?.id,
             endpointTokenConfig: this.options.endpointTokenConfig,
+            valueKey,            
           },
           { completionTokens: usage.reasoning_tokens },
         );
