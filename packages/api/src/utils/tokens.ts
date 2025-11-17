@@ -136,6 +136,11 @@ const deepseekModels = {
   'deepseek-reasoner': 128000,
   deepseek: 128000,
   'deepseek.r1': 128000,
+  //new models that I added to DeepSeek models
+  'deepseek-ai/DeepSeek-V3.2-Exp': 64000, // actually it is 128K context, I artificially limited it to 64K context
+  'deepseek-ai/DeepSeek-V3.1-Terminus': 64000, // actually it is bigger, I artificially limited it to 64K context
+  'deepseek-ai/DeepSeek-V3.1': 64000, // actually it is bigger, I artificially limited it to 64K context
+  //end of new models that I added to DeepSeek models  
 };
 
 const metaModels = {
