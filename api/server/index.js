@@ -31,6 +31,7 @@ const staticCache = require('./utils/staticCache');
 const noIndex = require('./middleware/noIndex');
 const { seedDatabase } = require('~/models');
 const routes = require('./routes');
+const youtubeUrlMiddleware = require('./middleware/youtubeMiddleware');
 
 const { PORT, HOST, ALLOW_SOCIAL_LOGIN, DISABLE_COMPRESSION, TRUST_PROXY } = process.env ?? {};
 
@@ -123,7 +124,8 @@ const startServer = async () => {
   app.use('/api/user', routes.user);
   app.use('/api/search', routes.search);
   app.use('/api/edit', routes.edit);
-  app.use('/api/messages', routes.messages);
+  // YouTube URL processor middleware must run before chat endpoints
+  app.use('/api/messages', youtubeUrlMiddleware, routes.messages);
   app.use('/api/convos', routes.convos);
   app.use('/api/presets', routes.presets);
   app.use('/api/prompts', routes.prompts);
@@ -134,12 +136,12 @@ const startServer = async () => {
   app.use('/api/models', routes.models);
   app.use('/api/plugins', routes.plugins);
   app.use('/api/config', routes.config);
-  app.use('/api/assistants', routes.assistants);
+  app.use('/api/assistants', youtubeUrlMiddleware, routes.assistants);
   app.use('/api/files', await routes.files.initialize());
   app.use('/images/', createValidateImageRequest(appConfig.secureImageLinks), routes.staticRoute);
   app.use('/api/share', routes.share);
   app.use('/api/roles', routes.roles);
-  app.use('/api/agents', routes.agents);
+  app.use('/api/agents', youtubeUrlMiddleware, routes.agents);
   app.use('/api/banner', routes.banner);
   app.use('/api/memories', routes.memories);
   app.use('/api/permissions', routes.accessPermissions);
