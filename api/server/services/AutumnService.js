@@ -239,7 +239,7 @@ async function fetchTokenBalanceAutumn({ openidId }) {
       if (typeof entry === 'undefined') {
         logger.warn(
           { featureId: useAutumnTokenCreditsFeatureId },
-          'token-credits feature not found in features map',
+          'token_credits feature not found in features map',
         );
         return 0;
       }
@@ -270,7 +270,7 @@ async function fetchTokenBalanceAutumn({ openidId }) {
 
       logger.warn(
         { featureId: useAutumnTokenCreditsFeatureId, entryType: typeof entry },
-        'Unexpected entry type for token-credits feature in features map',
+        'Unexpected entry type for token_credits feature in features map',
       );
       return 0;
     }
