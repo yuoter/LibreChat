@@ -14,6 +14,11 @@ export default function ExportAndShareMenu({
 }: {
   isSharedButtonEnabled: boolean;
 }) {
+  // Hardcoded Feature flag for Export button visibility.
+  // My edition
+  const exportConvoShow = false;
+  // end of hardcoded feature flag
+
   const localize = useLocalize();
   const [showExports, setShowExports] = useState(false);
   const [isPopoverActive, setIsPopoverActive] = useState(false);
@@ -58,6 +63,7 @@ export default function ExportAndShareMenu({
       label: localize('com_endpoint_export'),
       onClick: exportHandler,
       icon: <Upload className="icon-md mr-2 text-text-secondary" />,
+      show: exportConvoShow,
       /** NOTE: THE FOLLOWING PROPS ARE REQUIRED FOR MENU ITEMS THAT OPEN DIALOGS */
       hideOnClick: false,
       ref: exportButtonRef,

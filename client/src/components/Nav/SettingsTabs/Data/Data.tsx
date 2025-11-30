@@ -7,21 +7,32 @@ import { ClearChats } from './ClearChats';
 import SharedLinks from './SharedLinks';
 
 function Data() {
+  // Hardcoded feature flag to control visibility
+  const RevokeKeysOptionShow = false;
+  const ImportConversationsOptionShow = false;
+  //end of a hardcoded feature flag to control visibility 
+
+
+
   const dataTabRef = useRef(null);
   const [confirmClearConvos, setConfirmClearConvos] = useState(false);
   useOnClickOutside(dataTabRef, () => confirmClearConvos && setConfirmClearConvos(false), []);
 
   return (
     <div className="flex flex-col gap-3 p-1 text-sm text-text-primary">
-      <div className="pb-3">
-        <ImportConversations />
-      </div>
+      {ImportConversationsOptionShow && (
+        <div className="pb-3">
+          <ImportConversations />
+        </div>
+      )}
       <div className="pb-3">
         <SharedLinks />
       </div>
-      <div className="pb-3">
-        <RevokeKeys />
-      </div>
+      {RevokeKeysOptionShow && (
+        <div className="pb-3">
+          <RevokeKeys />
+        </div>
+      )}
       <div className="pb-3">
         <DeleteCache />
       </div>
