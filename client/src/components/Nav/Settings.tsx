@@ -27,7 +27,12 @@ import { useLocalize, TranslationKeys } from '~/hooks';
 import { useGetStartupConfig } from '~/data-provider';
 import { cn } from '~/utils';
 
+
+
+
+
 export default function Settings({ open, onOpenChange }: TDialogProps) {
+  
   const isSmallScreen = useMediaQuery('(max-width: 767px)');
   const { data: startupConfig } = useGetStartupConfig();
   const localize = useLocalize();
@@ -35,16 +40,23 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
   const tabRefs = useRef({});
   const { hasAnyPersonalizationFeature, hasMemoryOptOut } = usePersonalizationAccess();
 
+  // Hardcoded tab visibility flags. My edition
+  const balanceTabShow = false;
+  const accountTabShow = false;
+  const commandsTabShow = false;
+  const speechTabShow = false;
+  //end of hardcoded tab visibility flags
+
   const handleKeyDown = (event: React.KeyboardEvent) => {
     const tabs: SettingsTabValues[] = [
       SettingsTabValues.GENERAL,
       SettingsTabValues.CHAT,
-      SettingsTabValues.COMMANDS,
-      SettingsTabValues.SPEECH,
+      ...(commandsTabShow ? [SettingsTabValues.COMMANDS] : []),
+      ...(speechTabShow ? [SettingsTabValues.SPEECH] : []),
       ...(hasAnyPersonalizationFeature ? [SettingsTabValues.PERSONALIZATION] : []),
       SettingsTabValues.DATA,
-      ...(startupConfig?.balance?.enabled ? [SettingsTabValues.BALANCE] : []),
-      SettingsTabValues.ACCOUNT,
+      ...(balanceTabShow && startupConfig?.balance?.enabled ? [SettingsTabValues.BALANCE] : []),
+      ...(accountTabShow ? [SettingsTabValues.ACCOUNT] : []),
     ];
     const currentIndex = tabs.indexOf(activeTab);
 
@@ -68,6 +80,8 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
     }
   };
 
+
+  
   const settingsTabs: {
     value: SettingsTabValues;
     icon: React.JSX.Element;
@@ -83,16 +97,24 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
       icon: <MessageSquare className="icon-sm" />,
       label: 'com_nav_setting_chat',
     },
-    {
-      value: SettingsTabValues.COMMANDS,
-      icon: <Command className="icon-sm" />,
-      label: 'com_nav_commands',
-    },
-    {
-      value: SettingsTabValues.SPEECH,
-      icon: <SpeechIcon className="icon-sm" />,
-      label: 'com_nav_setting_speech',
-    },
+    ...(commandsTabShow
+      ? [
+          {
+            value: SettingsTabValues.COMMANDS,
+            icon: <Command className="icon-sm" />,
+            label: 'com_nav_commands',
+          },
+        ]
+      : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
+    ...(speechTabShow
+      ? [
+          {
+            value: SettingsTabValues.SPEECH,
+            icon: <SpeechIcon className="icon-sm" />,
+            label: 'com_nav_setting_speech',
+          },
+        ]
+      : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
     ...(hasAnyPersonalizationFeature
       ? [
           {
@@ -107,7 +129,7 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
       icon: <DataIcon />,
       label: 'com_nav_setting_data',
     },
-    ...(startupConfig?.balance?.enabled
+    ...(balanceTabShow && startupConfig?.balance?.enabled
       ? [
           {
             value: SettingsTabValues.BALANCE,
@@ -116,11 +138,15 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
           },
         ]
       : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
-    {
-      value: SettingsTabValues.ACCOUNT,
-      icon: <UserIcon />,
-      label: 'com_nav_setting_account',
-    },
+    ...(accountTabShow
+      ? [
+          {
+            value: SettingsTabValues.ACCOUNT,
+            icon: <UserIcon />,
+            label: 'com_nav_setting_account',
+          },
+        ]
+      : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
   ];
 
   const handleTabChange = (value: string) => {
@@ -226,12 +252,16 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
                     <Tabs.Content value={SettingsTabValues.CHAT} tabIndex={-1}>
                       <Chat />
                     </Tabs.Content>
-                    <Tabs.Content value={SettingsTabValues.COMMANDS} tabIndex={-1}>
-                      <Commands />
-                    </Tabs.Content>
-                    <Tabs.Content value={SettingsTabValues.SPEECH} tabIndex={-1}>
-                      <Speech />
-                    </Tabs.Content>
+                    {commandsTabShow && (
+                      <Tabs.Content value={SettingsTabValues.COMMANDS} tabIndex={-1}>
+                        <Commands />
+                      </Tabs.Content>
+                    )}
+                    {speechTabShow && (
+                      <Tabs.Content value={SettingsTabValues.SPEECH} tabIndex={-1}>
+                        <Speech />
+                      </Tabs.Content>
+                    )}
                     {hasAnyPersonalizationFeature && (
                       <Tabs.Content value={SettingsTabValues.PERSONALIZATION} tabIndex={-1}>
                         <Personalization
@@ -243,14 +273,16 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
                     <Tabs.Content value={SettingsTabValues.DATA} tabIndex={-1}>
                       <Data />
                     </Tabs.Content>
-                    {startupConfig?.balance?.enabled && (
+                    {balanceTabShow && startupConfig?.balance?.enabled && (
                       <Tabs.Content value={SettingsTabValues.BALANCE} tabIndex={-1}>
                         <Balance />
                       </Tabs.Content>
                     )}
-                    <Tabs.Content value={SettingsTabValues.ACCOUNT} tabIndex={-1}>
-                      <Account />
-                    </Tabs.Content>
+                    {accountTabShow && (
+                      <Tabs.Content value={SettingsTabValues.ACCOUNT} tabIndex={-1}>
+                        <Account />
+                      </Tabs.Content>
+                    )}
                   </div>
                 </Tabs.Root>
               </div>
