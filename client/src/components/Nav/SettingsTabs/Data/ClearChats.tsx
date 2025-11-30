@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useClearConversationsMutation } from 'librechat-data-provider/react-query';
+import { EModelEndpoint, SystemRoles } from 'librechat-data-provider';
 import {
   OGDialogTemplate,
   Label,
@@ -9,12 +10,14 @@ import {
   Spinner,
 } from '@librechat/client';
 import { clearAllConversationStorage } from '~/utils';
-import { useLocalize, useNewConvo } from '~/hooks';
+import { useLocalize, useNewConvo, useGetAgentsConfig, useAuthContext } from '~/hooks';
 
 export const ClearChats = () => {
   const localize = useLocalize();
   const [open, setOpen] = useState(false);
   const { newConversation } = useNewConvo();
+  const { agentsConfig } = useGetAgentsConfig();
+  const { user } = useAuthContext();
   const clearConvosMutation = useClearConversationsMutation();
 
   const clearConvos = () => {
@@ -23,7 +26,20 @@ export const ClearChats = () => {
       {
         onSuccess: () => {
           clearAllConversationStorage();
-          newConversation();
+          const defaultAgent = agentsConfig?.defaultAgent ?? '';
+          const shouldUseDefaultAgent =
+            user?.role === SystemRoles.USER && defaultAgent && defaultAgent !== '';
+
+          if (shouldUseDefaultAgent) {
+            newConversation({
+              preset: {
+                endpoint: EModelEndpoint.agents,
+                agent_id: defaultAgent,
+              },
+            });
+          } else {
+            newConversation();
+          }
         },
       },
     );
