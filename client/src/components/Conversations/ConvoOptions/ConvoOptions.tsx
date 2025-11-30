@@ -16,6 +16,12 @@ import DeleteButton from './DeleteButton';
 import ShareButton from './ShareButton';
 import { cn } from '~/utils';
 
+// Hardcoded Feature flags for conversation menu visibility (intentionally named per request). 
+// My edition
+const archieveConvoOptionShow = false;
+const duplicateConvoOptionShow = false;
+//end of hardcoded feature flags
+
 function ConvoOptions({
   conversationId,
   title,
@@ -148,6 +154,7 @@ function ConvoOptions({
         label: localize('com_ui_duplicate'),
         onClick: handleDuplicateClick,
         hideOnClick: false,
+        show: duplicateConvoOptionShow,
         icon: isDuplicateLoading ? (
           <Spinner className="size-4" />
         ) : (
@@ -158,6 +165,7 @@ function ConvoOptions({
         label: localize('com_ui_archive'),
         onClick: handleArchiveClick,
         hideOnClick: false,
+        show: archieveConvoOptionShow,
         icon: isArchiveLoading ? (
           <Spinner className="size-4" />
         ) : (
