@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { QueryKeys } from 'librechat-data-provider';
+import { QueryKeys, EModelEndpoint, SystemRoles } from 'librechat-data-provider';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -13,7 +13,7 @@ import {
 } from '@librechat/client';
 import type { TMessage } from 'librechat-data-provider';
 import { useDeleteConversationMutation } from '~/data-provider';
-import { useLocalize, useNewConvo } from '~/hooks';
+import { useLocalize, useNewConvo, useGetAgentsConfig, useAuthContext } from '~/hooks';
 import { NotificationSeverity } from '~/common';
 
 type DeleteButtonProps = {
@@ -45,13 +45,28 @@ export function DeleteConversationDialog({
   const { showToast } = useToastContext();
   const { newConversation } = useNewConvo();
   const { conversationId: currentConvoId } = useParams();
+  const { agentsConfig } = useGetAgentsConfig();
+  const { user } = useAuthContext();
 
   const deleteMutation = useDeleteConversationMutation({
     onSuccess: () => {
       setShowDeleteDialog(false);
       if (currentConvoId === conversationId || currentConvoId === 'new') {
-        newConversation();
-        navigate('/c/new', { replace: true });
+        const defaultAgent = agentsConfig?.defaultAgent ?? '';
+        const shouldUseDefaultAgent =
+          user?.role === SystemRoles.USER && defaultAgent && defaultAgent !== '';
+
+        if (shouldUseDefaultAgent) {
+          newConversation({
+            preset: {
+              endpoint: EModelEndpoint.agents,
+              agent_id: defaultAgent,
+            },
+          });
+        } else {
+          newConversation();
+        }
+        navigate('/c/new', { replace: true, state: { focusChat: true } });
       }
       setMenuOpen?.(false);
       retainView();
