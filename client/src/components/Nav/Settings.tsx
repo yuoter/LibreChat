@@ -40,7 +40,7 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
   const tabRefs = useRef({});
   const { hasAnyPersonalizationFeature, hasMemoryOptOut } = usePersonalizationAccess();
 
-  // Hardcoded tab visibility flags. My edition
+  // Hardcoded tab visibility flags. My edition.
   const balanceTabShow = false;
   const accountTabShow = false;
   const commandsTabShow = false;
