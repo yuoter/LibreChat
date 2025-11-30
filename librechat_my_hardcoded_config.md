@@ -1,4 +1,5 @@
 Feature flags:
+
 In client/src/components/Nav/Settings.tsx
 for hidding tabs such as Balance, Account, Commands, Speech:
 balanceTabShow 
