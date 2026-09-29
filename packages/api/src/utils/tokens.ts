@@ -85,6 +85,13 @@ const googleModels = {
   'gemma-2': 32768,
   'gemma-3': 32768,
   'gemma-3-27b': 131072,
+  // DeepInfra: https://deepinfra.com/pricing
+  // Shorter id is listed before the -turbo variant so reverse pattern matching
+  // prefers the longer key.
+  'google/gemma-4-31B-it': 262144,
+  'google/gemma-4-31B-it-turbo': 262144,
+  'google/gemma-4-26B-A4B-it': 262144,
+  'google/gemma-3-27b-it': 131072,
   gemini: 30720, // -2048 from max
   'gemini-pro-vision': 12288,
   'gemini-exp': 2000000,
@@ -140,7 +147,11 @@ const deepseekModels = {
   'deepseek-ai/DeepSeek-V3.2-Exp': 64000, // actually it is 128K context, I artificially limited it to 64K context
   'deepseek-ai/DeepSeek-V3.1-Terminus': 64000, // actually it is bigger, I artificially limited it to 64K context
   'deepseek-ai/DeepSeek-V3.1': 64000, // actually it is bigger, I artificially limited it to 64K context
-  //end of new models that I added to DeepSeek models  
+  // DeepInfra context window is 1,048,576 (1024k). https://deepinfra.com/pricing
+  'deepseek-ai/DeepSeek-V4-Flash': 1048576,
+  'deepseek-ai/DeepSeek-V4-Flash-0731': 1048576,
+  'deepseek-ai/DeepSeek-V4.1-Flash': 1048576,
+  //end of new models that I added to DeepSeek models
 };
 
 const metaModels = {
@@ -275,6 +286,8 @@ const aggregateModels = {
   'glm-4.5-air': 131000,
   'glm-4.5v': 66000,
   'glm-4.6': 200000,
+  // DeepInfra Qwen3-32B context is 40,960. https://deepinfra.com/Qwen/Qwen3-32B
+  'Qwen/Qwen3-32B': 40960,
 };
 
 export const maxTokensMap = {
