@@ -116,14 +116,10 @@ const tokenValues = Object.assign(
     'deepseek-ai/DeepSeek-V3.2-Exp': { prompt: 0.27, completion: 0.4 },
     'deepseek-ai/DeepSeek-V3.1-Terminus': { prompt: 0.27, completion: 1.00 },
     'deepseek-ai/DeepSeek-V3.1': { prompt: 0.27, completion: 1.00 },
+    // https://deepinfra.com/pricing — USD per 1M tokens
     'deepseek-ai/DeepSeek-V4-Flash': { prompt: 0.09, completion: 0.18 },
     'deepseek-ai/DeepSeek-V4-Flash-0731': { prompt: 0.06, completion: 0.18 },
-    'Qwen/Qwen3-32B': { prompt: 0.08, completion: 0.28 },
-    'google/gemma-3-27b-it': { prompt: 0.08, completion: 0.16 },
-    'google/gemma-4-26B-A4B-it': { prompt: 0.07, completion: 0.34 },
-    'google/gemma-4-31B-it': { prompt: 0.13, completion: 0.38 },
-    'google/gemma-4-31B-it-turbo': { prompt: 0.09, completion: 0.34 },
-    'google/gemma-4-31B-it-Ultra': { prompt: 0.27, completion: 0.76 },
+    'deepseek-ai/DeepSeek-V4.1-Flash': { prompt: 0.14, completion: 0.42 },
     //end of new models that I added
     deepseek: { prompt: 0.28, completion: 0.42 },
     /* cohere doesn't have rates for the older command models,
@@ -133,6 +129,12 @@ const tokenValues = Object.assign(
     'gemma-2': { prompt: 0, completion: 0 }, // https://ai.google.dev/pricing
     'gemma-3': { prompt: 0, completion: 0 }, // https://ai.google.dev/pricing
     'gemma-3-27b': { prompt: 0, completion: 0 }, // https://ai.google.dev/pricing
+    // DeepInfra Google models: https://deepinfra.com/pricing
+    'google/gemma-4-31B-it': { prompt: 0.13, completion: 0.38 },
+    'google/gemma-4-31B-it-turbo': { prompt: 0.09, completion: 0.34 },
+    'google/gemma-4-26B-A4B-it': { prompt: 0.07, completion: 0.34 },
+    'google/gemma-3-27b-it': { prompt: 0.08, completion: 0.16 },
+    'Qwen/Qwen3-32B': { prompt: 0.08, completion: 0.28 },
     'gemini-2.0-flash-lite': { prompt: 0.075, completion: 0.3 },
     'gemini-2.0-flash': { prompt: 0.1, completion: 0.4 },
     'gemini-2.0': { prompt: 0, completion: 0 }, // https://ai.google.dev/pricing
@@ -198,6 +200,10 @@ const cacheTokenValues = {
   'claude-3-haiku': { write: 0.3, read: 0.03 },
   'claude-sonnet-4': { write: 3.75, read: 0.3 },
   'claude-opus-4': { write: 18.75, read: 1.5 },
+  // DeepInfra cached input (read). No separate default cache-write price.
+  // https://deepinfra.com/pricing
+  'deepseek-ai/DeepSeek-V4-Flash': { read: 0.018 },
+  'deepseek-ai/DeepSeek-V4-Flash-0731': { read: 0.015 },
   'google/gemma-4-31B-it-turbo': { read: 0.05 },
 };
 
