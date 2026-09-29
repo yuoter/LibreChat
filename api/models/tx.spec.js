@@ -519,7 +519,77 @@ describe('Deepseek Model Tests', () => {
       expect(completionRate).toBe(tokenValues[valueKey].completion);
     });
   });
-  //end of tests of new models that I added  
+
+  it('should price DeepInfra DeepSeek V4 models per 1M tokens', () => {
+    expect(getValueKey('deepseek-ai/DeepSeek-V4-Flash')).toBe('deepseek-ai/DeepSeek-V4-Flash');
+    expect(getMultiplier({ model: 'deepseek-ai/DeepSeek-V4-Flash', tokenType: 'prompt' })).toBe(
+      0.09,
+    );
+    expect(
+      getMultiplier({ model: 'deepseek-ai/DeepSeek-V4-Flash', tokenType: 'completion' }),
+    ).toBe(0.18);
+    expect(getCacheMultiplier({ model: 'deepseek-ai/DeepSeek-V4-Flash', cacheType: 'read' })).toBe(
+      0.018,
+    );
+
+    expect(getValueKey('deepseek-ai/DeepSeek-V4-Flash-0731')).toBe(
+      'deepseek-ai/DeepSeek-V4-Flash-0731',
+    );
+    expect(
+      getMultiplier({ model: 'deepseek-ai/DeepSeek-V4-Flash-0731', tokenType: 'prompt' }),
+    ).toBe(0.06);
+    expect(
+      getMultiplier({ model: 'deepseek-ai/DeepSeek-V4-Flash-0731', tokenType: 'completion' }),
+    ).toBe(0.18);
+    expect(
+      getCacheMultiplier({ model: 'deepseek-ai/DeepSeek-V4-Flash-0731', cacheType: 'read' }),
+    ).toBe(0.015);
+
+    expect(getValueKey('deepseek-ai/DeepSeek-V4.1-Flash')).toBe(
+      'deepseek-ai/DeepSeek-V4.1-Flash',
+    );
+    expect(
+      getMultiplier({ model: 'deepseek-ai/DeepSeek-V4.1-Flash', tokenType: 'prompt' }),
+    ).toBe(0.14);
+    expect(
+      getMultiplier({ model: 'deepseek-ai/DeepSeek-V4.1-Flash', tokenType: 'completion' }),
+    ).toBe(0.42);
+  });
+  //end of tests of new models that I added
+});
+
+describe('DeepInfra Google and Qwen pricing', () => {
+  const cases = [
+    ['google/gemma-4-31B-it-turbo', 0.09, 0.34],
+    ['google/gemma-4-31B-it', 0.13, 0.38],
+    ['google/gemma-4-26B-A4B-it', 0.07, 0.34],
+    ['google/gemma-3-27b-it', 0.08, 0.16],
+    ['Qwen/Qwen3-32B', 0.08, 0.28],
+  ];
+
+  it.each(cases)('prices %s at $%s in / $%s out per 1M tokens', (model, prompt, completion) => {
+    expect(getValueKey(model)).toBe(model);
+    expect(getMultiplier({ model, tokenType: 'prompt' })).toBe(prompt);
+    expect(getMultiplier({ model, tokenType: 'completion' })).toBe(completion);
+  });
+
+  it('does not collapse gemma-4 turbo onto the shorter gemma-4 id', () => {
+    expect(getValueKey('google/gemma-4-31B-it-turbo')).toBe('google/gemma-4-31B-it-turbo');
+    expect(getMultiplier({ model: 'google/gemma-4-31B-it-turbo', tokenType: 'prompt' })).not.toBe(
+      getMultiplier({ model: 'google/gemma-4-31B-it', tokenType: 'prompt' }),
+    );
+  });
+
+  it('prices gemma-4 turbo cached input at the DeepInfra read rate', () => {
+    expect(
+      getCacheMultiplier({ model: 'google/gemma-4-31B-it-turbo', cacheType: 'read' }),
+    ).toBe(0.05);
+  });
+
+  it('does not use the free gemma-3-27b rate for google/gemma-3-27b-it', () => {
+    expect(getMultiplier({ model: 'google/gemma-3-27b-it', tokenType: 'prompt' })).toBe(0.08);
+    expect(getMultiplier({ model: 'google/gemma-3-27b-it', tokenType: 'completion' })).toBe(0.16);
+  });
 });
 
 describe('getCacheMultiplier', () => {
