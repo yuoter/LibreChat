@@ -640,6 +640,19 @@ describe('Meta Models Tests', () => {
       expect(getModelMaxTokens('meta/llama2')).toBe(4000);
     });
 
+    test('should return DeepInfra context windows for added models', () => {
+      expect(getModelMaxTokens('deepseek-ai/DeepSeek-V4-Flash')).toBe(1048576);
+      expect(getModelMaxTokens('deepseek-ai/DeepSeek-V4-Flash-0731')).toBe(1048576);
+      expect(getModelMaxTokens('deepseek-ai/DeepSeek-V4.1-Flash')).toBe(1048576);
+      expect(getModelMaxTokens('Qwen/Qwen3-32B')).toBe(40960);
+      expect(getModelMaxTokens('google/gemma-4-31B-it-turbo')).toBe(262144);
+      expect(getModelMaxTokens('google/gemma-4-31B-it')).toBe(262144);
+      expect(getModelMaxTokens('google/gemma-4-26B-A4B-it')).toBe(262144);
+      expect(getModelMaxTokens('google/gemma-3-27b-it')).toBe(131072);
+      expect(matchModelName('google/gemma-4-31B-it-turbo')).toBe('google/gemma-4-31B-it-turbo');
+      expect(matchModelName('google/gemma-3-27b-it')).toBe('google/gemma-3-27b-it');
+    });
+
     test('should match Deepseek model variations', () => {
       expect(getModelMaxTokens('deepseek-chat')).toBe(
         maxTokensMap[EModelEndpoint.openAI]['deepseek'],
